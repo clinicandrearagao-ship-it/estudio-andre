@@ -837,7 +837,11 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
 
           <div class="ctrl-grp" style="margin-bottom:12px">
             <span class="ctrl-lbl">Fotos (capa + slides, opcional)</span>
-            <input type="file" id="car2-foto" accept="image/*" multiple style="padding:7px 10px;font-size:11px;cursor:pointer;width:100%">
+            <input type="file" id="car2-foto" accept="image/*" multiple style="padding:7px 10px;font-size:11px;cursor:pointer;width:100%;display:none" onchange="car2FotoChange(this)">
+            <div onclick="document.getElementById('car2-foto').click()" style="padding:10px 14px;background:var(--surface2);border:1px solid var(--line2);border-radius:8px;cursor:pointer;font-size:12px;color:var(--cream-mid);text-align:center;transition:all .2s" onmouseover="this.style.borderColor='var(--gold-border)'" onmouseout="this.style.borderColor='var(--line2)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Clique para selecionar fotos
+            </div>
             <div id="car2-fotos-prev" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
           </div>
 
@@ -1910,22 +1914,30 @@ function car2Init(){
       if(pr)pr.textContent=d?d.titulo:'';
     });
   }
-  const fileInput=document.getElementById('car2-foto');
-  if(fileInput)fileInput.addEventListener('change',function(e){
-    const files=Array.from(e.target.files||[]);
-    if(!files.length)return;
-    let loaded=0;
-    files.forEach(function(f){
-      const rd=new FileReader();
-      rd.onload=function(ev){
-        car2Fotos.push(ev.target.result);
-        loaded++;
-        if(loaded===files.length)car2RenderFotosPrev();
-      };
-      rd.onerror=function(){loaded++;if(loaded===files.length)car2RenderFotosPrev();};
-      rd.readAsDataURL(f);
-    });
-    e.target.value='';
+  // file input handled by car2FotoChange() below
+}
+
+function car2FotoChange(input){
+  const files=Array.from(input.files||[]);
+  if(!files.length)return;
+  let loaded=0;
+  const total=files.length;
+  files.forEach(function(f){
+    const rd=new FileReader();
+    rd.onload=function(ev){
+      car2Fotos.push(ev.target.result);
+      loaded++;
+      const label=input.previousElementSibling||input.nextElementSibling;
+      if(loaded===total){
+        car2RenderFotosPrev();
+        input.value='';
+        // Update button label
+        const btn=input.parentElement.querySelector('div[onclick]');
+        if(btn)btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'+car2Fotos.length+' foto'+(car2Fotos.length>1?'s':'')+' carregada'+(car2Fotos.length>1?'s':'')+' · clique para adicionar mais';
+      }
+    };
+    rd.onerror=function(){loaded++;if(loaded===total)car2RenderFotosPrev();};
+    rd.readAsDataURL(f);
   });
 }
 
