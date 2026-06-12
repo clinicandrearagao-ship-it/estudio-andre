@@ -1669,6 +1669,219 @@ async function apiFable(messages,system,max){
 // ══ CARROSSEL V2 — FABLE 5 + CANVAS EDITORIAL ════════════════════════════
 
 
+
+// ══ MOTOR DE CONSISTÊNCIA · 180 DIAS ════════════════════════════════════════
+const MOTOR_FASES=[
+  {nome:'Fundação',cor:'#5B9FD4',dias:[1,60],foco:'Instalar quem é André. Cada post fixa uma crença sobre identidade, especialidade e diferencial.'},
+  {nome:'Autoridade',cor:'#C9A84C',dias:[61,120],foco:'Conteúdo denso para salvar e compartilhar. André começa a ser citado como referência em Fortaleza.'},
+  {nome:'Conversão',cor:'#5DBB8A',dias:[121,180],foco:'A audiência já confia. CTAs mais diretos. Posts desenhados para virar consulta.'},
+];
+const MOTOR_PERGUNTAS=[
+  {dia:'Segunda',texto:'O que você viu em consulta essa semana que surpreendeu um paciente?',porque:'Histórias reais de consultório têm credibilidade que nenhum conteúdo técnico alcança. Esse é o ativo incopiável.'},
+  {dia:'Terça',texto:'Qual é a crença errada que mais aparece nos seus pacientes de Mounjaro ou GLP-1?',porque:'Desconstruir crença errada gera salvamento e compartilhamento imediato.'},
+  {dia:'Quarta',texto:'Qual situação social (churrasco, happy hour, viagem) você mais recebe pergunta de paciente?',porque:'Vida social e shape no mesmo conteúdo é a lacuna que define seu posicionamento.'},
+  {dia:'Quinta',texto:'Qual momento da sua época de natação explica algo que você faz diferente como nutricionista hoje?',porque:'A história de atleta é incopiável. É o que transforma você de mais um nutri em referência com trajetória.'},
+  {dia:'Sexta',texto:'Descreva um resultado de paciente dessa semana: o perfil, o obstáculo, o que mudou.',porque:'Prova social concreta converte mais que qualquer argumento técnico.'},
+  {dia:'Sábado',texto:'Qual pergunta você recebeu por DM essa semana que mais pessoas deveriam ouvir?',porque:'DMs são inteligência de mercado gratuita. A dúvida em DM é a dúvida de centenas de silenciosos.'},
+  {dia:'Domingo',texto:'O que você percebeu sobre seu trabalho essa semana que te surpreendeu?',porque:'Reflexão de bastidor humaniza e gera identificação genuína.'},
+];
+
+let motorDia=(function(){try{return parseInt(localStorage.getItem('motor_dia')||'1');}catch(e){return 1;}})();
+let motorDiaSemana=new Date().getDay();
+
+function motorGetFase(dia){
+  for(let i=0;i<MOTOR_FASES.length;i++){if(dia>=MOTOR_FASES[i].dias[0]&&dia<=MOTOR_FASES[i].dias[1])return i;}
+  return 2;
+}
+
+function motorInit(){
+  motorRenderBar();
+  motorRenderFases();
+  motorRenderPergunta();
+  const inp=document.getElementById('motor-input');
+  if(inp){
+    inp.addEventListener('input',function(){
+      const el=document.getElementById('motor-chars');
+      if(el)el.textContent=this.value.length+' caracteres';
+    });
+  }
+}
+
+function motorRenderBar(){
+  const bar=document.getElementById('motor-phase-bar');
+  if(!bar)return;
+  const pct=Math.round(((motorDia-1)/180)*100);
+  bar.innerHTML=MOTOR_FASES.map(function(f){
+    const total=f.dias[1]-f.dias[0]+1;
+    const feitos=Math.max(0,Math.min(motorDia-f.dias[0],total));
+    const fpct=feitos/total;
+    const flex=(total/180*100).toFixed(1);
+    const w=fpct>=1?'100%':(fpct*100).toFixed(0)+'%';
+    return '<div class="motor-phase-seg" style="flex:'+flex+';background:rgba(255,255,255,0.06);position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;height:100%;width:'+w+';background:'+f.cor+';transition:width .4s"></div></div>';
+  }).join('');
+  const dl=document.getElementById('motor-day-label');
+  const pp=document.getElementById('motor-pct-label');
+  const pb=document.getElementById('motor-phase-badge');
+  if(dl)dl.textContent='DIA '+motorDia+' DE 180';
+  if(pp)pp.textContent=pct+'% concluído';
+  if(pb)pb.textContent=MOTOR_FASES[motorGetFase(motorDia)].nome.toUpperCase();
+}
+
+function motorRenderFases(){
+  const el=document.getElementById('motor-fases-list');
+  if(!el)return;
+  const fa=motorGetFase(motorDia);
+  el.innerHTML='<div style="font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:10px">Arquitetura dos 6 meses</div>'+
+    MOTOR_FASES.map(function(f,i){
+      const done=motorDia>f.dias[1];
+      const ativa=i===fa;
+      return '<div class="motor-fase-row'+(ativa?' ativa':'')+'" title="'+f.foco+'">'+
+        '<div class="motor-fase-dot" style="background:'+f.cor+(done?';opacity:.3':'')+'""></div>'+
+        '<span class="motor-fase-nm">'+f.nome+'</span>'+
+        '<span class="motor-fase-range">'+f.dias[0]+'-'+f.dias[1]+'</span>'+
+        '</div>';
+    }).join('');
+}
+
+function motorRenderPergunta(){
+  const idx=motorDiaSemana%MOTOR_PERGUNTAS.length;
+  const p=MOTOR_PERGUNTAS[idx];
+  const fa=motorGetFase(motorDia);
+  const fase=MOTOR_FASES[fa];
+  const ql=document.getElementById('motor-q-label');
+  const qt=document.getElementById('motor-q-text');
+  const qw=document.getElementById('motor-q-why');
+  if(ql)ql.textContent=p.dia.toUpperCase()+' · '+fase.nome.toUpperCase();
+  if(qt)qt.textContent='"'+p.texto+'"';
+  if(qw)qw.textContent=p.porque;
+}
+
+async function motorGerar(){
+  const inputEl=document.getElementById('motor-input');
+  const input=(inputEl?inputEl.value:'').trim();
+  const out=document.getElementById('motor-output');
+  const empty=document.getElementById('motor-empty');
+  if(!input){
+    if(out){out.style.display='block';out.innerHTML='<div class="erro-msg">Escreve sua resposta antes de gerar.</div>';}
+    if(empty)empty.style.display='none';
+    return;
+  }
+  load('btn-motor',true,'Transformando...');
+  if(empty)empty.style.display='none';
+  if(out){out.style.display='block';out.innerHTML='<div style="text-align:center;padding:50px 0;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:20px;height:20px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px">Gerando 3 formatos para essa fase...</p></div>';}
+
+  const fa=motorGetFase(motorDia);
+  const fase=MOTOR_FASES[fa];
+  const idx=motorDiaSemana%MOTOR_PERGUNTAS.length;
+  const pergunta=MOTOR_PERGUNTAS[idx];
+
+  const faseInstr={
+    0:'FASE FUNDACAO (dias 1-60): o objetivo e instalar uma crenca sobre quem e Andre Aragao. Tom: apresentar, conectar, estabelecer identidade. CTA: seguir e salvar.',
+    1:'FASE AUTORIDADE (dias 61-120): conteudo denso para ser salvo e compartilhado. Mais especifico, citavel, com dados praticos. CTA: salvar e mandar pra quem precisa ouvir.',
+    2:'FASE CONVERSAO (dias 121-180): audiencia ja confia. CTA mais direto para consulta. Tom de quem convida, nao de quem empurra.'
+  }[fa];
+
+  const prompt='O nutricionista Andre Aragao respondeu a seguinte pergunta de reflexao:\n\nPERGUNTA: "'+pergunta.texto+'"\nRESPOSTA DELE: "'+input+'"\n\n'+faseInstr+'\n\nGere os 3 formatos abaixo baseados EXATAMENTE no que ele escreveu. Nao invente situacoes.\n\nFORMATO 1: CARROSSEL\nSlide 1 (CAPA): gancho EM CAIXA ALTA, situacao/dilema, max 8 palavras\nSlides 2-7: dicas numeradas, 1 por slide, max 3 linhas, exemplos concretos\nSlide 8 (FECHAMENTO): verdade simples que a pessoa quer salvar\nSlide 9 (CTA): acao clara\n\nFORMATO 2: ROTEIRO DE REELS\nHook (0-3s): frase exata que para o scroll\nRoteiro: max 90 palavras, tom de conversa\nLegenda: pronta para publicar com 3 hashtags\n\nFORMATO 3: SEQUENCIA DE STORIES (5 stories)\nStory 1: gancho\nStory 2-4: desenvolvimento com 1 enquete ou pergunta interativa\nStory 5: CTA\n\nAo final:\nINSIGHT: em 2 frases, por que esse conteudo funciona para a fase '+fase.nome+'.\n\nSepare com: ===CARROSSEL=== ===REELS=== ===STORIES=== ===INSIGHT===';
+
+  try{
+    const texto=await api(prompt,2500);
+    motorRenderOutput(texto,fase);
+  }catch(e){
+    if(out)out.innerHTML='<div class="erro-msg">'+esc(e.message||'Erro ao gerar. Tente novamente.')+'</div>';
+  }
+  load('btn-motor',false);
+}
+
+function motorRenderOutput(texto,fase){
+  function extrai(t,ini,fim){
+    const i=t.indexOf(ini);if(i===-1)return '';
+    const s=i+ini.length;
+    if(!fim)return t.slice(s).trim();
+    const f=t.indexOf(fim,s);
+    return(f===-1?t.slice(s):t.slice(s,f)).trim();
+  }
+  const partes={
+    car:extrai(texto,'===CARROSSEL===','===REELS==='),
+    ree:extrai(texto,'===REELS===','===STORIES==='),
+    sto:extrai(texto,'===STORIES===','===INSIGHT==='),
+    ins:extrai(texto,'===INSIGHT===',null)
+  };
+  const out=document.getElementById('motor-output');
+  if(!out)return;
+  let html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
+    '<span style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">GERADO · '+fase.nome.toUpperCase()+'</span>'+
+    '<button class="btn btn-ghost" style="font-size:11px;padding:6px 14px" onclick="motorCopiarTudo()">Copiar tudo</button></div>';
+
+  if(partes.ins){
+    html+='<div class="motor-insight"><div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px">POR QUE FUNCIONA AGORA</div>'+
+      '<div style="font-size:12.5px;color:var(--cream-mid);line-height:1.6">'+esc(partes.ins)+'</div></div>';
+  }
+
+  html+='<div class="motor-tabs">'+
+    '<button class="motor-tab active" onclick="motorMostrar(this,\'car\')">Carrossel</button>'+
+    '<button class="motor-tab" onclick="motorMostrar(this,\'ree\')">Reels</button>'+
+    '<button class="motor-tab" onclick="motorMostrar(this,\'sto\')">Stories</button></div>';
+
+  ['car','ree','sto'].forEach(function(k){
+    const labels={car:'Carrossel · slide a slide',ree:'Roteiro de Reels',sto:'Sequência de Stories'};
+    html+='<div id="motor-fmt-'+k+'" class="motor-result"'+(k!=='car'?' style="display:none"':'')+'>'+
+      '<div class="motor-result-head">'+
+        '<span class="motor-result-label">'+labels[k]+'</span>'+
+        '<button class="btn btn-ghost" style="font-size:11px;padding:6px 14px" onclick="motorCopiar(this)">Copiar</button>'+
+      '</div>'+
+      '<div class="motor-result-body" id="motor-body-'+k+'">'+esc(partes[k]||'(não gerado)')+'</div></div>';
+  });
+
+  html+='<div style="margin-top:16px;padding:14px 18px;background:var(--surface2);border-radius:10px;border:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">'+
+    '<div><div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:3px">Próximo passo</div>'+
+    '<div style="font-size:12px;color:var(--cream-mid)">Publique hoje. A consistência é o produto.</div></div>'+
+    '<button onclick="motorAvancar()" style="font-size:11px;padding:8px 16px;border-radius:6px;border:1px solid var(--gold-border);background:var(--gold-dim);color:var(--gold);cursor:pointer;font-family:Inter,sans-serif;font-weight:600;white-space:nowrap">Marcar como publicado →</button></div>';
+
+  out.innerHTML=html;
+  window._motorPartes=partes;
+}
+
+function motorMostrar(btn,fmt){
+  document.querySelectorAll('.motor-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  ['car','ree','sto'].forEach(function(k){
+    const el=document.getElementById('motor-fmt-'+k);
+    if(el)el.style.display=k===fmt?'block':'none';
+  });
+}
+
+function motorCopiar(btn){
+  const body=btn.closest('.motor-result').querySelector('[id^="motor-body-"]');
+  if(!body)return;
+  navigator.clipboard.writeText(body.innerText).then(function(){
+    const o=btn.textContent;btn.textContent='Copiado ✓';setTimeout(function(){btn.textContent=o;},2000);
+  });
+}
+
+function motorCopiarTudo(){
+  const p=window._motorPartes||{};
+  const txt=['=== CARROSSEL ===\n'+(p.car||''),'=== REELS ===\n'+(p.ree||''),'=== STORIES ===\n'+(p.sto||'')].join('\n\n');
+  navigator.clipboard.writeText(txt);
+}
+
+function motorAvancar(){
+  motorDia=Math.min(180,motorDia+1);
+  motorDiaSemana=(motorDiaSemana+1)%7;
+  try{localStorage.setItem('motor_dia',motorDia);}catch(e){}
+  motorRenderBar();
+  motorRenderFases();
+  motorRenderPergunta();
+  const inp=document.getElementById('motor-input');
+  if(inp)inp.value='';
+  const chars=document.getElementById('motor-chars');
+  if(chars)chars.textContent='0 caracteres';
+  const empty=document.getElementById('motor-empty');
+  const out=document.getElementById('motor-output');
+  if(empty)empty.style.display='flex';
+  if(out)out.style.display='none';
+}
+
+
 // ══ CONSULTOR ESTRATÉGICO · FABLE 5 ════════════════════════════════════════
 const CONSULTOR_SYS=`Voce e o Consultor Estrategico do nutricionista Andre Aragao. Voce nao e um gerador de conteudo. Voce e um diretor de crescimento que conhece o Andre profundamente e fala com ele de igual para igual.
 
