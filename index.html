@@ -872,12 +872,18 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
               <div class="resultado-body" id="car2-legenda"></div>
             </div>
             <div class="car2-ajuste-wrap">
-              <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Ajuste rápido de design</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Ajuste rápido de design</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
                 <button class="btn btn-ghost" style="font-size:10px;padding:5px 12px" onclick="car2AjusteRapido('revista')">Revista papel</button>
                 <button class="btn btn-ghost" style="font-size:10px;padding:5px 12px" onclick="car2AjusteRapido('cartaz')">Cartaz cor</button>
                 <button class="btn btn-ghost" style="font-size:10px;padding:5px 12px" onclick="car2AjusteRapido('noturno')">Noturno preto</button>
               </div>
+              <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Editor de slides</div>
+              <div id="car2-editor-slides" style="display:flex;flex-direction:column;gap:8px"></div>
+              <button class="btn btn-primary" onclick="car2AplicarEdicoes()" style="width:100%;justify-content:center;margin-top:10px;font-size:11px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Aplicar edições e rerenderizar
+              </button>
             </div>
           </div>
         </div>
@@ -1907,9 +1913,16 @@ function car2Init(){
   const fileInput=document.getElementById('car2-foto');
   if(fileInput)fileInput.addEventListener('change',function(e){
     const files=Array.from(e.target.files||[]);
+    if(!files.length)return;
+    let loaded=0;
     files.forEach(function(f){
       const rd=new FileReader();
-      rd.onload=ev=>{car2Fotos.push(ev.target.result);car2RenderFotosPrev();};
+      rd.onload=function(ev){
+        car2Fotos.push(ev.target.result);
+        loaded++;
+        if(loaded===files.length)car2RenderFotosPrev();
+      };
+      rd.onerror=function(){loaded++;if(loaded===files.length)car2RenderFotosPrev();};
       rd.readAsDataURL(f);
     });
     e.target.value='';
@@ -2130,6 +2143,40 @@ function car2RenderSlides(slides){
     car2DesenharSlide(canvas,slide,est,cor,mapaFotos[i]||null,total,i);
     wrap.addEventListener('click',function(){car2BaixarSlide(canvas,slide.num);});
   });
+
+  // Build inline editor
+  car2BuildEditor(slides);
+}
+
+function car2BuildEditor(slides){
+  const el=document.getElementById('car2-editor-slides');
+  if(!el)return;
+  const TIPO_LABEL={capa:'Capa',intro:'Frase de impacto',dica:'Dica',cta:'Fechamento'};
+  el.innerHTML=slides.map(function(s,i){
+    const label=TIPO_LABEL[s.tipo]||s.tipo;
+    const tituloVal=s.titulo||'';
+    const textoVal=s.texto||s.subtitulo||'';
+    return '<div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px 14px">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
+        '<span style="font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1.5px;text-transform:uppercase;background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-border);padding:2px 8px;border-radius:4px">'+label.toUpperCase()+'</span>'+
+        '<span style="font-size:9px;font-family:monospace;color:var(--cream-dim)">SLIDE '+s.num+'</span>'+
+      '</div>'+
+      (tituloVal||s.tipo==='capa'||s.tipo==='dica'||s.tipo==='cta'?
+        '<input type="text" data-idx="'+i+'" data-field="titulo" value="'+esc(tituloVal)+'" placeholder="Título" style="width:100%;background:var(--surface);border:1px solid var(--line2);color:var(--cream);padding:7px 10px;border-radius:6px;font-family:Inter,sans-serif;font-size:12px;margin-bottom:6px;outline:none">':'')+
+      (s.tipo!=='cta'?
+        '<textarea data-idx="'+i+'" data-field="texto" rows="2" placeholder="Texto de apoio" style="width:100%;background:var(--surface);border:1px solid var(--line2);color:var(--cream);padding:7px 10px;border-radius:6px;font-family:Inter,sans-serif;font-size:12px;resize:vertical;outline:none">'+esc(textoVal)+'</textarea>':'')+
+      '</div>';
+  }).join('');
+}
+
+function car2AplicarEdicoes(){
+  const inputs=document.querySelectorAll('#car2-editor-slides [data-idx]');
+  inputs.forEach(function(inp){
+    const idx=parseInt(inp.dataset.idx);
+    const field=inp.dataset.field;
+    if(car2SlidesGerados[idx])car2SlidesGerados[idx][field]=inp.value;
+  });
+  car2RenderSlides(car2SlidesGerados);
 }
 
 async function car2DesenharSlide(canvas,slide,est,cor,fotoB64,total,idx){
@@ -2157,70 +2204,104 @@ async function car2DesenharSlide(canvas,slide,est,cor,fotoB64,total,idx){
 // ── CAPA ──
 function car2DCapa(ctx,slide,est,cor,bg,img,S,total){
   ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
-  const temFoto=!!img;
   const accent=(est.nome==='Cartaz')?est.ink:cor;
-
-  if(temFoto){
-    // Foto ocupa faixa central com duotone, headline sobrepõe
-    const fy=176,fh=560;
-    car2FotoDuotone(ctx,img,0,fy,S,fh,(est.nome==='Noturno')?'#1A1610':cor,est.nome==='Noturno');
-    // hairlines acima e abaixo da foto
-    ctx.fillStyle=est.ink;
-    ctx.fillRect(72,fy-14,S-144,2);
-  } else {
-    // composição tipográfica: número de edição gigante cortado
-    ctx.save();
-    ctx.fillStyle=accent;
-    ctx.globalAlpha=(est.nome==='Cartaz')?0.14:0.1;
-    ctx.font='400 880px Anton,Impact,sans-serif';
-    ctx.textAlign='right';
-    ctx.fillText('26',S+110,820);
-    ctx.restore();
-    ctx.textAlign='left';
-  }
-
-  // Masthead
-  car2Meta(ctx,S,'ANDRÉ ARAGÃO','NUTRIÇÃO REAL',96,est.ink);
-  ctx.fillStyle=est.ink;ctx.fillRect(72,116,S-144,3);
-
-  // Headline gigante na base, Anton
   const titulo=(slide.titulo||'').toUpperCase();
-  let size=titulo.length>34?104:titulo.length>22?124:titulo.length>14?148:172;
-  ctx.font='400 '+size+'px Anton,Impact,sans-serif';
-  let lines=car2Linhas(ctx,titulo,S-144);
-  while(lines.length>3&&size>80){size-=10;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-144);}
-  const lh=size*1.04;
-  // bloco termina acima do rodapé; reserva espaço pro subtítulo
-  const blockEnd=(S-160)-(slide.subtitulo?150:0);
-  const startY=blockEnd-(lines.length-1)*lh;
-  // marcador de cor atrás da primeira linha
-  const fw=ctx.measureText(lines[0]).width;
-  ctx.fillStyle=accent;
-  ctx.globalAlpha=(est.nome==='Noturno')?0.85:1;
-  ctx.fillRect(66,startY-size*0.72,fw+24,size*0.84);
-  ctx.globalAlpha=1;
-  // texto
-  lines.forEach(function(l,i){
-    ctx.fillStyle=(i===0)?((est.nome==='Cartaz')?bg:est.inv===est.bg?est.ink:'#F6F1E6'):est.ink;
-    if(est.nome==='Noturno'&&i===0)ctx.fillStyle='#0C0B09';
-    if(est.nome==='Revista'&&i===0)ctx.fillStyle='#F6F1E6';
-    if(est.nome==='Cartaz'&&i===0)ctx.fillStyle=bg;
-    ctx.fillText(l,78,startY+i*lh);
-  });
 
-  // Subtítulo em Cormorant itálico
-  if(slide.subtitulo){
-    ctx.fillStyle=est.sec;
-    ctx.font='italic 600 42px "Cormorant Garamond",Georgia,serif';
-    const subY=startY+(lines.length-1)*lh+78;
-    car2Linhas(ctx,slide.subtitulo,S-180).slice(0,2).forEach(function(l,i){
-      ctx.fillText(l,78,Math.min(subY+i*54,S-128));
+  if(img){
+    // LAYOUT COM FOTO: foto ocupa metade direita, texto na esquerda
+    const fotoX=Math.round(S*0.46);
+    const ratio=Math.max((S-fotoX)/img.width,S/img.height);
+    const iw=img.width*ratio,ih=img.height*ratio;
+    ctx.save();
+    ctx.beginPath();ctx.rect(fotoX,0,S-fotoX,S);ctx.clip();
+    ctx.drawImage(img,fotoX+(S-fotoX-iw)/2,(S-ih)/2,iw,ih);
+    ctx.restore();
+    // Gradiente de fusão da foto para o fundo
+    const grd=ctx.createLinearGradient(fotoX,0,fotoX+280,0);
+    grd.addColorStop(0,bg);grd.addColorStop(1,bg+'00');
+    ctx.fillStyle=grd;ctx.fillRect(fotoX,0,280,S);
+    ctx.fillStyle=accent;ctx.fillRect(fotoX-3,0,3,S);
+    // Masthead
+    const colW=fotoX-80;
+    ctx.fillStyle=est.ink;ctx.fillRect(60,70,colW,2);
+    ctx.fillStyle=cor;ctx.font='700 19px Inter,sans-serif';
+    try{ctx.letterSpacing='3px';}catch(e){}
+    ctx.textAlign='left';ctx.fillText('ANDRÉ ARAGÃO',60,105);
+    try{ctx.letterSpacing='0px';}catch(e){}
+    ctx.fillStyle=est.ink;ctx.fillRect(60,118,colW,1);
+    // Título
+    let size=titulo.length>22?96:titulo.length>14?116:138;
+    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
+    let lines=car2Linhas(ctx,titulo,colW);
+    while(lines.length>5&&size>70){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,colW);}
+    const lh=size*1.06;
+    const fw1=Math.min(ctx.measureText(lines[0]).width,colW);
+    ctx.fillStyle=accent;ctx.fillRect(54,165,fw1+16,size*0.9);
+    lines.forEach(function(l,i){
+      ctx.fillStyle=i===0?((est.nome==='Noturno')?'#0C0B09':'#F6F1E6'):est.ink;
+      if(est.nome==='Cartaz'&&i===0)ctx.fillStyle=bg;
+      ctx.fillText(l,60,165+size*0.82+i*lh);
     });
+    if(slide.subtitulo){
+      ctx.fillStyle=est.sec;
+      ctx.font='italic 600 32px "Cormorant Garamond",Georgia,serif';
+      const subY=165+lines.length*lh+38;
+      car2Linhas(ctx,slide.subtitulo,colW).slice(0,3).forEach(function(l,i){
+        ctx.fillText(l,60,Math.min(subY+i*44,S-110));
+      });
+    }
+    ctx.fillStyle=est.ink;ctx.fillRect(60,S-90,colW,2);
+    ctx.fillStyle=est.handle;ctx.font='700 18px Inter,sans-serif';
+    try{ctx.letterSpacing='2px';}catch(e){}
+    ctx.fillText('@NUTRIANDREARAGAO',60,S-52);
+    try{ctx.letterSpacing='0px';}catch(e){}
+    ctx.textAlign='right';ctx.fillStyle=est.sec;ctx.font='700 17px Inter,sans-serif';
+    ctx.fillText('DESLIZE →',fotoX-20,S-52);
+    ctx.textAlign='left';
+  } else {
+    // LAYOUT SEM FOTO: composição tipográfica full-width
+    ctx.save();
+    ctx.fillStyle=accent;ctx.globalAlpha=0.08;
+    ctx.font='400 820px Anton,Impact,sans-serif';
+    ctx.textAlign='right';ctx.fillText('A',S+80,840);
+    ctx.restore();ctx.textAlign='left';
+    ctx.fillStyle=est.ink;ctx.fillRect(60,70,S-120,2);
+    ctx.fillStyle=cor;ctx.font='700 20px Inter,sans-serif';
+    try{ctx.letterSpacing='4px';}catch(e){}
+    ctx.fillText('ANDRÉ ARAGÃO',60,106);
+    ctx.fillStyle=est.sec;ctx.fillText('NUTRICIONISTA',346,106);
+    try{ctx.letterSpacing='0px';}catch(e){}
+    ctx.fillStyle=est.ink;ctx.fillRect(60,120,S-120,1);
+    let size=titulo.length>30?108:titulo.length>20?130:titulo.length>12?156:178;
+    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
+    let lines=car2Linhas(ctx,titulo,S-120);
+    while(lines.length>4&&size>84){size-=10;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-120);}
+    const lh=size*1.04;
+    const blockEnd=(S-150)-(slide.subtitulo?130:0);
+    const startY=blockEnd-(lines.length-1)*lh;
+    const fw1=Math.min(ctx.measureText(lines[0]).width,S-120);
+    ctx.fillStyle=accent;ctx.fillRect(54,startY-size*0.76,fw1+20,size*0.88);
+    lines.forEach(function(l,i){
+      ctx.fillStyle=i===0?((est.nome==='Noturno')?'#0C0B09':'#F6F1E6'):est.ink;
+      if(est.nome==='Cartaz'&&i===0)ctx.fillStyle=bg;
+      ctx.fillText(l,60,startY+i*lh);
+    });
+    if(slide.subtitulo){
+      ctx.fillStyle=est.sec;ctx.font='italic 600 40px "Cormorant Garamond",Georgia,serif';
+      const subY=startY+lines.length*lh+42;
+      car2Linhas(ctx,slide.subtitulo,S-140).slice(0,2).forEach(function(l,i){
+        ctx.fillText(l,60,Math.min(subY+i*52,S-110));
+      });
+    }
+    ctx.fillStyle=est.ink;ctx.fillRect(60,S-90,S-120,2);
+    ctx.fillStyle=est.handle;ctx.font='700 20px Inter,sans-serif';
+    try{ctx.letterSpacing='2px';}catch(e){}
+    ctx.fillText('@NUTRIANDREARAGAO',60,S-52);
+    ctx.textAlign='right';ctx.fillStyle=est.sec;ctx.font='700 18px Inter,sans-serif';
+    ctx.fillText('DESLIZE →',S-60,S-52);
+    ctx.textAlign='left';
+    try{ctx.letterSpacing='0px';}catch(e){}
   }
-
-  // Rodapé
-  ctx.fillStyle=est.ink;ctx.fillRect(72,S-92,S-144,2);
-  car2Meta(ctx,S,'@NUTRIANDREARAGAO','DESLIZE  →',S-48,est.ink);
 }
 
 // ── INTRO (slide 2): frase grande centrada estilo statement ──
