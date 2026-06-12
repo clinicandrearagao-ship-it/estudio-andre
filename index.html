@@ -175,6 +175,10 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg>
     <span class="nav-tip">30 dias</span>
   </button>
+  <button class="nav-item" data-panel="dashboard" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span class="nav-tip">Dashboard</span>
+  </button>
   <button class="nav-item" data-panel="estrategia" onclick="go(this)">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
     <span class="nav-tip">Estratégia e voz</span>
@@ -990,6 +994,110 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
       <div id="grid30" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px"></div>
     </section>
 
+
+    <!-- DASHBOARD -->
+    <section class="panel" id="panel-dashboard">
+      <style>
+        .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+        @media(max-width:700px){.dash-grid{grid-template-columns:1fr}}
+        .dash-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+        .dash-card-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:6px}
+        .dash-card-val{font-size:36px;font-weight:700;font-family:'Cormorant Garamond',serif;color:var(--cream);line-height:1}
+        .dash-card-sub{font-size:11px;color:var(--cream-dim);margin-top:4px}
+        .dash-card-trend{font-size:11px;font-weight:600;margin-top:6px}
+        .dash-card-trend.up{color:var(--green)} .dash-card-trend.down{color:var(--red)}
+        .post-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+        .post-row:last-child{border-bottom:none}
+        .post-fmt{font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1.5px;padding:3px 8px;border-radius:4px;flex-shrink:0}
+        .post-titulo{font-size:13px;color:var(--cream-mid);flex:1;line-height:1.4}
+        .post-metric{font-size:11px;font-family:monospace;color:var(--cream-dim);white-space:nowrap}
+        .post-metric.hot{color:var(--gold)}
+        .semana-row{display:flex;align-items:center;gap:8px;padding:7px 0}
+        .semana-bar-bg{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+        .semana-bar{height:100%;border-radius:3px;transition:width .4s}
+        .registrar-form{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:20px}
+      </style>
+
+      <div class="eyebrow">Dashboard de Resultados</div>
+      <div class="sec-title">O que está funcionando de verdade</div>
+      <p class="sec-desc">Registre o que você publicou e o que performou. O Consultor lê esses dados e calibra as sugestões para o que funciona especificamente para o seu público.</p>
+
+      <!-- KPIs -->
+      <div class="dash-grid" id="dash-kpis">
+        <div class="dash-card"><div class="dash-card-label">Posts registrados</div><div class="dash-card-val" id="kpi-posts">0</div><div class="dash-card-sub">Total acumulado</div></div>
+        <div class="dash-card"><div class="dash-card-label">DMs geradas</div><div class="dash-card-val" id="kpi-dms">0</div><div class="dash-card-sub">Por posts registrados</div></div>
+        <div class="dash-card"><div class="dash-card-label">Salvamentos totais</div><div class="dash-card-val" id="kpi-saves">0</div><div class="dash-card-sub">Indicador de conteúdo útil</div></div>
+        <div class="dash-card"><div class="dash-card-label">Consultas originadas</div><div class="dash-card-val" id="kpi-consultas">0</div><div class="dash-card-sub">Conversão real</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" class="dash-two-col">
+        <!-- Registrar post -->
+        <div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:12px">Registrar post publicado</div>
+          <div class="registrar-form">
+            <div class="ctrl-grp" style="margin-bottom:10px">
+              <span class="ctrl-lbl">Título / tema do post</span>
+              <input type="text" id="dash-titulo" placeholder="Ex: VOU PRO CHURRASCO HOJE, E AGORA?">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div class="ctrl-grp">
+                <span class="ctrl-lbl">Formato</span>
+                <select id="dash-fmt">
+                  <option value="CARROSSEL">Carrossel</option>
+                  <option value="REELS">Reels</option>
+                  <option value="POST">Post foto</option>
+                  <option value="STORIES">Stories</option>
+                </select>
+              </div>
+              <div class="ctrl-grp">
+                <span class="ctrl-lbl">Tema</span>
+                <select id="dash-tema">
+                  <option value="vida_social">Vida social</option>
+                  <option value="shape">Shape e treino</option>
+                  <option value="mounjaro">Mounjaro / GLP-1</option>
+                  <option value="historia">História pessoal</option>
+                  <option value="mito">Mito nutricional</option>
+                  <option value="resultado">Resultado de paciente</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+              <div class="ctrl-grp"><span class="ctrl-lbl">Alcance</span><input type="number" id="dash-alcance" placeholder="0" min="0"></div>
+              <div class="ctrl-grp"><span class="ctrl-lbl">Salvamentos</span><input type="number" id="dash-saves" placeholder="0" min="0"></div>
+              <div class="ctrl-grp"><span class="ctrl-lbl">DMs geradas</span><input type="number" id="dash-dms" placeholder="0" min="0"></div>
+              <div class="ctrl-grp"><span class="ctrl-lbl">Consultas</span><input type="number" id="dash-consultas" placeholder="0" min="0"></div>
+            </div>
+            <button class="btn btn-primary" onclick="dashRegistrar()" style="width:100%;justify-content:center">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Registrar
+            </button>
+          </div>
+
+          <!-- Top por formato -->
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:10px">Performance por formato</div>
+          <div class="dash-card" id="dash-por-formato">
+            <div style="font-size:12px;color:var(--cream-dim);font-style:italic">Registre posts para ver análise</div>
+          </div>
+        </div>
+
+        <!-- Histórico + Análise IA -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim)">Posts registrados</div>
+            <button class="btn btn-primary" id="btn-dash-ia" onclick="dashAnaliseIA()" style="font-size:11px;padding:8px 16px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/></svg>
+              Analisar com Consultor
+            </button>
+          </div>
+          <div id="dash-historico" style="max-height:320px;overflow-y:auto;margin-bottom:16px">
+            <div style="font-size:12px;color:var(--cream-dim);font-style:italic;padding:12px 0">Nenhum post registrado ainda.</div>
+          </div>
+          <div id="dash-analise-ia" style="display:none"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ESTRATÉGIA -->
     <section class="panel" id="panel-estrategia">
       <div class="eyebrow">Briefing estratégico</div>
@@ -1024,6 +1132,7 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
   <button class="mob-btn" data-panel="serie" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Série</button>
   <button class="mob-btn" data-panel="imagens" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Imagens</button>
   <button class="mob-btn" data-panel="reels" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="5 3 19 12 5 21 5 3"/></svg>Reels</button>
+  <button class="mob-btn" data-panel="dashboard" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Dashboard</button>
   <button class="mob-btn" data-panel="tendencias" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 2 17"/><polyline points="17 6 23 6 23 12"/></svg>Trends</button>
   <button class="mob-btn" data-panel="carrossel" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8"/><path d="M12 3v4"/></svg>Carrossel</button>
   <button class="mob-btn" data-panel="calendario" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendário</button>
@@ -2969,7 +3078,284 @@ function car2CopiarLegenda(){
 
 
 
-document.addEventListener('DOMContentLoaded', function(){renderGrid30();motorInit();conInit();car2Init();});
+
+// ══ GANCHOS ═══════════════════════════════════════════════════════════════
+function ganchoRapido(tema){
+  document.getElementById('gancho-tema').value=tema;
+  gerarGanchos();
+}
+
+async function gerarGanchos(){
+  const tema=document.getElementById('gancho-tema').value.trim();
+  const out=document.getElementById('ganchos-out');
+  if(!tema){out.innerHTML='<div class="erro-msg">Escolha uma situação ou descreva a sua antes de gerar.</div>';return;}
+  load('btn-ganchos',true,'Criando ganchos...');
+  out.innerHTML='';
+  try{
+    const raw=await api(`Gere exatamente 10 ganchos de Instagram sobre: ${tema}.
+
+Padrao @thiagobarros: titulo EM CAIXA ALTA, formato de dilema ou pergunta falada. Varie os angulos.
+Exemplos: "VOU PRO CHURRASCO HOJE, E AGORA?", "CERVEJA ENGORDA?", "FERREI NO FIM DE SEMANA"
+
+JSON apenas:
+{"ganchos":[{"titulo":"GANCHO EM CAIXA ALTA","formato":"CARROSSEL|REELS|POST|STORIES","tipo":"DILEMA|POLEMICA|CONFISSAO|NUMERO|MITO","porque":"por que para o scroll em 1 frase"}]}`,2500);
+    const clean=raw.replace(/\`\`\`json|\`\`\`/gi,'').trim();
+    const m=clean.match(/\{[\s\S]*\}/);
+    if(!m)throw new Error('JSON não encontrado');
+    const data=JSON.parse(m[0]);
+    const TIPO_COR={DILEMA:'var(--gold)',POLEMICA:'var(--red)',CONFISSAO:'var(--green)',NUMERO:'var(--blue)',MITO:'var(--amber)'};
+    out.innerHTML='<div class="pautas-grid">'+data.ganchos.map(function(g){
+      const tc=TIPO_COR[g.tipo]||'var(--cream-dim)';
+      return '<div class="pauta-card" onclick="usarGancho(this)" data-t="'+encodeURIComponent(g.titulo)+'" data-f="'+(g.formato||'CARROSSEL').toLowerCase()+'">'+
+        '<div class="pauta-head"><span class="badge b-fmt">'+g.formato+'</span><span class="badge" style="background:transparent;border:1px solid '+tc+'40;color:'+tc+'">'+g.tipo+'</span></div>'+
+        '<div class="pauta-titulo" style="font-size:17px">'+esc(g.titulo)+'</div>'+
+        '<div class="pauta-porque">'+esc(g.porque)+'</div>'+
+        '<div class="pauta-cta"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Escrever este conteúdo</div></div>';
+    }).join('')+'</div>';
+  }catch(e){out.innerHTML='<div class="erro-msg">Erro ao gerar ganchos: '+esc(e.message||'tente novamente')+'</div>';}
+  load('btn-ganchos',false);
+}
+
+function usarGancho(card){
+  document.getElementById('escrever-input').value=decodeURIComponent(card.dataset.t);
+  const fm={carrossel:'carrossel',reels:'reels',post:'legenda',stories:'stories'};
+  document.getElementById('escrever-formato').value=fm[card.dataset.f]||'carrossel';
+  go(document.querySelector('[data-panel="escrever"]'));
+  escreverConteudo();
+}
+
+// ══ RESPONDER DMs ══════════════════════════════════════════════════════════
+async function responderMsg(){
+  const msg=document.getElementById('resp-input').value.trim();
+  const tipo=document.getElementById('resp-tipo').value;
+  const out=document.getElementById('resp-out');
+  if(!msg){out.innerHTML='<div class="erro-msg">Cole o comentário ou a DM antes de gerar.</div>';return;}
+  load('btn-resp',true,'Escrevendo...');
+  out.innerHTML='';
+  const ctx={
+    comentario:'COMENTARIO PUBLICO. Resposta sera lida por todos. Curta, calorosa, max 3 frases, constroi autoridade.',
+    dm_duvida:'DM PRIVADA com duvida. Responda com generosidade, de valor real, mas sem consulta gratis. Se precisar de individualizacao, convide para consulta naturalmente.',
+    dm_preco:'DM PERGUNTANDO PRECO. Nao despache. Valorize o acompanhamento, explique como funciona (presencial em Fortaleza ou online para todo o Brasil), direcione para agendamento. Tom acolhedor, zero script.',
+    critica:'CRITICA OU HATER. Elegancia e seguranca, sem ironia. Corrija com ciencia simples. Quem le deve respeitar mais o Andre.'
+  };
+  try{
+    const raw=await api(`A pessoa escreveu para o Andre: "${msg}"
+
+CONTEXTO: ${ctx[tipo]}
+
+Gere 2 respostas na voz exata do Andre: amigo que entende, frase curta, zero robo, zero "Ola! Obrigado".
+
+JSON apenas:
+{"respostas":[{"rotulo":"nome curto da abordagem","texto":"resposta pronta para copiar"}],"vira_conteudo":"titulo EM CAIXA ALTA se essa pergunta renderia post, ou NAO"}`,1500);
+    const clean=raw.replace(/\`\`\`json|\`\`\`/gi,'').trim();
+    const m=clean.match(/\{[\s\S]*\}/);
+    if(!m)throw new Error('JSON não encontrado');
+    const data=JSON.parse(m[0]);
+    let html2='<div style="display:flex;flex-direction:column;gap:12px">';
+    data.respostas.forEach(function(r){
+      html2+='<div class="resultado-wrap"><div class="resultado-head"><span class="resultado-label">'+esc(r.rotulo.toUpperCase())+'</span><button class="btn btn-ghost" style="font-size:11px;padding:7px 14px" onclick="copiar(this)">Copiar</button></div><div class="resultado-body">'+esc(r.texto)+'</div></div>';
+    });
+    html2+='</div>';
+    if(data.vira_conteudo&&data.vira_conteudo.toUpperCase()!=='NAO'&&data.vira_conteudo.toUpperCase()!=='NÃO'){
+      html2+='<div style="margin-top:14px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">'+
+        '<div><div style="font-size:10px;font-weight:700;font-family:monospace;color:var(--gold);letter-spacing:1.5px;margin-bottom:4px">ESSA PERGUNTA VIRA POST</div>'+
+        '<div style="font-size:14px;color:var(--cream);font-weight:600">'+esc(data.vira_conteudo)+'</div></div>'+
+        '<button class="btn btn-primary" style="font-size:11px;padding:8px 16px" onclick="escreverPost(\''+encodeURIComponent(data.vira_conteudo)+'\',\'carrossel\')">Escrever agora</button></div>';
+    }
+    out.innerHTML=html2;
+  }catch(e){out.innerHTML='<div class="erro-msg">Erro: '+esc(e.message||'tente novamente')+'</div>';}
+  load('btn-resp',false);
+}
+
+function escreverPost(tituloEnc,fmt){
+  document.getElementById('escrever-input').value=decodeURIComponent(tituloEnc);
+  document.getElementById('escrever-formato').value=fmt||'carrossel';
+  go(document.querySelector('[data-panel="escrever"]'));
+  escreverConteudo();
+}
+
+// ══ TENDÊNCIAS ════════════════════════════════════════════════════════════
+async function gerarTendencias(){
+  const foco=document.getElementById('trend-foco').value;
+  const out=document.getElementById('tendencias-out');
+  load('btn-tendencias',true,'Pesquisando tendências...');
+  out.innerHTML='<div style="text-align:center;padding:40px;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:20px;height:20px;border-color:var(--gold);border-top-color:transparent"></div><p>Analisando o que está em alta...</p></div>';
+  const focos={
+    geral:'situacoes da vida real com comida: delivery, rotina corrida, fim de semana, comer fora',
+    saojoao:'Sao Joao, festas juninas, canjica, pamonha, comidas tipicas, Nordeste',
+    social:'alcool, cerveja, churrasco, rodizio, happy hour e vida social',
+    glp1:'Mounjaro, tirzepatida e analogos GLP-1',
+    esportiva:'alimentacao para quem treina, shape, proteina',
+    comportamento:'comer por ansiedade, culpa alimentar, restricao e compulsao'
+  };
+  try{
+    const raw=await api(`Gere 8 tendencias de conteudo para Instagram sobre ${focos[foco]||focos.geral} para um nutricionista em junho de 2026 no Brasil.
+
+JSON apenas:
+{"tendencias":[{"tema":"nome da tendencia","angulo":"como o Andre entra nessa tendencia","formato":"CARROSSEL|REELS|POST","gancho":"titulo EM CAIXA ALTA no padrao @thiagobarros","potencial":"ALTO|MEDIO","porque":"por que está em alta agora"}]}`,2000);
+    const clean=raw.replace(/\`\`\`json|\`\`\`/gi,'').trim();
+    const m=clean.match(/\{[\s\S]*\}/);
+    if(!m)throw new Error('JSON não encontrado');
+    const data=JSON.parse(m[0]);
+    const POT={ALTO:'var(--green)',MEDIO:'var(--amber)'};
+    out.innerHTML='<div class="pautas-grid">'+data.tendencias.map(function(t){
+      return '<div class="pauta-card">'+
+        '<div class="pauta-head"><span class="badge b-fmt">'+t.formato+'</span><span class="badge" style="background:transparent;border:1px solid '+(POT[t.potencial]||'var(--cream-dim)')+'40;color:'+(POT[t.potencial]||'var(--cream-dim)')+'">'+t.potencial+'</span></div>'+
+        '<div style="font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.5px;margin-bottom:4px">'+esc(t.tema)+'</div>'+
+        '<div class="pauta-titulo" style="font-size:16px">'+esc(t.gancho)+'</div>'+
+        '<div class="pauta-porque" style="margin-top:4px">'+esc(t.angulo)+'</div>'+
+        '<div class="pauta-porque" style="opacity:.7;margin-top:3px">'+esc(t.porque)+'</div>'+
+        '<div class="pauta-cta" onclick="escreverPost(\''+encodeURIComponent(t.gancho)+'\',\''+t.formato.toLowerCase()+'\')" style="cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Escrever este conteúdo</div></div>';
+    }).join('')+'</div>';
+  }catch(e){out.innerHTML='<div class="erro-msg">Erro: '+esc(e.message||'tente novamente')+'</div>';}
+  load('btn-tendencias',false);
+}
+
+// ══ DASHBOARD DE RESULTADOS ═══════════════════════════════════════════════
+function dashLoad(){try{return JSON.parse(localStorage.getItem('dash_posts')||'[]');}catch(e){return [];}}
+function dashSave(posts){try{localStorage.setItem('dash_posts',JSON.stringify(posts));}catch(e){}}
+
+let dashPosts=dashLoad();
+
+function dashRegistrar(){
+  const titulo=document.getElementById('dash-titulo').value.trim();
+  if(!titulo){alert('Digite o título do post.');return;}
+  const post={
+    id:Date.now(),
+    titulo,
+    fmt:document.getElementById('dash-fmt').value,
+    tema:document.getElementById('dash-tema').value,
+    alcance:parseInt(document.getElementById('dash-alcance').value)||0,
+    saves:parseInt(document.getElementById('dash-saves').value)||0,
+    dms:parseInt(document.getElementById('dash-dms').value)||0,
+    consultas:parseInt(document.getElementById('dash-consultas').value)||0,
+    data:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
+  };
+  dashPosts.unshift(post);
+  if(dashPosts.length>200)dashPosts=dashPosts.slice(0,200);
+  dashSave(dashPosts);
+  // Reset form
+  ['dash-titulo','dash-alcance','dash-saves','dash-dms','dash-consultas'].forEach(function(id){
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  dashRender();
+}
+
+function dashDel(id){
+  dashPosts=dashPosts.filter(function(p){return p.id!==id;});
+  dashSave(dashPosts);
+  dashRender();
+}
+
+function dashRender(){
+  // KPIs
+  const total=dashPosts.length;
+  const totalSaves=dashPosts.reduce(function(s,p){return s+p.saves;},0);
+  const totalDMs=dashPosts.reduce(function(s,p){return s+p.dms;},0);
+  const totalConsultas=dashPosts.reduce(function(s,p){return s+p.consultas;},0);
+  const kpis={
+    'kpi-posts':total,
+    'kpi-saves':totalSaves,
+    'kpi-dms':totalDMs,
+    'kpi-consultas':totalConsultas
+  };
+  Object.keys(kpis).forEach(function(k){
+    const el=document.getElementById(k);if(el)el.textContent=kpis[k];
+  });
+
+  // Por formato
+  const fmtMap={};
+  dashPosts.forEach(function(p){
+    if(!fmtMap[p.fmt])fmtMap[p.fmt]={posts:0,saves:0,dms:0,consultas:0};
+    fmtMap[p.fmt].posts++;
+    fmtMap[p.fmt].saves+=p.saves;
+    fmtMap[p.fmt].dms+=p.dms;
+    fmtMap[p.fmt].consultas+=p.consultas;
+  });
+  const fmtEl=document.getElementById('dash-por-formato');
+  if(fmtEl){
+    if(!Object.keys(fmtMap).length){
+      fmtEl.innerHTML='<div style="font-size:12px;color:var(--cream-dim);font-style:italic">Registre posts para ver análise</div>';
+    } else {
+      const maxSaves=Math.max(...Object.values(fmtMap).map(function(v){return v.saves||1;}));
+      fmtEl.innerHTML=Object.keys(fmtMap).map(function(fmt){
+        const v=fmtMap[fmt];
+        const pct=Math.round((v.saves/maxSaves)*100);
+        const FMT_COR={CARROSSEL:'#5B9FD4',REELS:'#C9A84C',POST:'#5DBB8A',STORIES:'#E8943A'};
+        const cor=FMT_COR[fmt]||'var(--cream-dim)';
+        return '<div class="semana-row"><span style="font-size:9px;font-weight:700;font-family:monospace;color:'+cor+';width:80px">'+fmt+'</span>'+
+          '<div class="semana-bar-bg"><div class="semana-bar" style="width:'+pct+'%;background:'+cor+'"></div></div>'+
+          '<span style="font-size:10px;font-family:monospace;color:var(--cream-dim);width:60px;text-align:right">'+v.saves+' saves</span>'+
+          '<span style="font-size:10px;font-family:monospace;color:var(--cream-dim);width:50px;text-align:right">'+v.dms+' DMs</span>'+
+          '</div>';
+      }).join('');
+    }
+  }
+
+  // Histórico
+  const hist=document.getElementById('dash-historico');
+  if(hist){
+    if(!dashPosts.length){
+      hist.innerHTML='<div style="font-size:12px;color:var(--cream-dim);font-style:italic;padding:12px 0">Nenhum post registrado ainda.</div>';
+    } else {
+      const FMT_COR={CARROSSEL:'rgba(91,159,212,.15)',REELS:'rgba(201,168,76,.15)',POST:'rgba(93,187,138,.15)',STORIES:'rgba(232,148,58,.15)'};
+      const FMT_TXT={CARROSSEL:'#5B9FD4',REELS:'#C9A84C',POST:'#5DBB8A',STORIES:'#E8943A'};
+      hist.innerHTML=dashPosts.slice(0,30).map(function(p){
+        const bg=FMT_COR[p.fmt]||'var(--surface2)';
+        const tc=FMT_TXT[p.fmt]||'var(--cream-dim)';
+        return '<div class="post-row">'+
+          '<span class="post-fmt" style="background:'+bg+';color:'+tc+'">'+p.fmt+'</span>'+
+          '<div class="post-titulo">'+esc(p.titulo)+'<div style="font-size:9px;font-family:monospace;color:var(--cream-dim);margin-top:2px">'+p.data+'</div></div>'+
+          '<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end">'+
+            '<span class="post-metric'+(p.saves>20?' hot':'')+'">'+p.saves+' saves</span>'+
+            (p.dms?'<span class="post-metric hot">'+p.dms+' DMs</span>':'')+
+            (p.consultas?'<span class="post-metric" style="color:var(--green)">'+p.consultas+' consultas</span>':'')+
+          '</div>'+
+          '<button onclick="dashDel('+p.id+')" style="background:none;border:none;color:var(--cream-dim);cursor:pointer;padding:4px;font-size:14px" title="Apagar">×</button>'+
+          '</div>';
+      }).join('')+(dashPosts.length>30?'<div style="font-size:10px;color:var(--cream-dim);text-align:center;padding:8px">+'+( dashPosts.length-30)+' posts</div>':'');
+    }
+  }
+}
+
+async function dashAnaliseIA(){
+  const out=document.getElementById('dash-analise-ia');
+  if(!out)return;
+  if(!dashPosts.length){
+    out.style.display='block';
+    out.innerHTML='<div class="erro-msg">Registre pelo menos 1 post antes de analisar.</div>';
+    return;
+  }
+  load('btn-dash-ia',true,'Consultando...');
+  out.style.display='block';
+  out.innerHTML='<div style="text-align:center;padding:30px;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 10px;width:18px;height:18px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:12px">Consultor analisando seus resultados...</p></div>';
+
+  const resumo=dashPosts.slice(0,30).map(function(p){
+    return '['+p.data+' '+p.fmt+' '+p.tema+'] "'+p.titulo+'" — alcance:'+p.alcance+' saves:'+p.saves+' DMs:'+p.dms+' consultas:'+p.consultas;
+  }).join('\n');
+
+  const prompt='HISTORICO DE POSTS DO ANDRE (mais recente primeiro):\n'+resumo+'\n\nAnalise esses dados e responda:\n1. PADROES: o que especificamente esta funcionando melhor (formato, tema, tipo de titulo)? Use os numeros.\n2. LACUNA: qual oportunidade clara os dados mostram que ele ainda nao explorou?\n3. PROXIMO POST: qual seria o melhor post para publicar agora baseado nessa analise? Da o titulo exato em CAIXA ALTA no padrao @thiagobarros.\n4. ALERTA: se houver algo preocupante nos dados, aponte diretamente.\n\nSeja direto e baseado exclusivamente nos dados. Sem elogio vazio.';
+
+  try{
+    const texto=await apiFable([{role:'user',content:prompt}],CONSULTOR_SYS,1500);
+    out.innerHTML='<div style="background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:12px;padding:18px 20px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'+
+        '<div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">ANÁLISE DO CONSULTOR · FABLE 5</div>'+
+        '<span class="con-fable-tag">FABLE 5</span>'+
+      '</div>'+
+      '<div style="font-size:13px;color:var(--cream-mid);line-height:1.75;white-space:pre-wrap">'+esc(texto)+'</div></div>';
+  }catch(e){
+    out.innerHTML='<div class="erro-msg">Erro: '+esc(e.message||'tente novamente')+'</div>';
+  }
+  load('btn-dash-ia',false);
+}
+
+function dashInit(){
+  dashRender();
+}
+
+
+document.addEventListener('DOMContentLoaded', function(){renderGrid30();motorInit();conInit();car2Init();dashInit();});
 </script>
 </body>
 </html>
