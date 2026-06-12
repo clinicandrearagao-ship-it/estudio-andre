@@ -807,6 +807,7 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
             <button class="car2-stab active" onclick="car2Tab(this,'livre')">Tema livre</button>
             <button class="car2-stab" onclick="car2Tab(this,'consultor')">Do Consultor</button>
             <button class="car2-stab" onclick="car2Tab(this,'cal30')">30 dias</button>
+            <button class="car2-stab" onclick="car2Tab(this,'foto')">Da foto</button>
           </div>
 
           <div class="car2-source-block active" id="car2-src-livre">
@@ -825,6 +826,20 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
               <option value="">Selecione um dia do calendário</option>
             </select>
             <div id="car2-cal30-preview" style="font-size:12px;color:var(--cream-dim);padding:8px;font-style:italic"></div>
+          </div>
+
+          <div class="car2-source-block" id="car2-src-foto">
+            <input type="file" id="car2-upload-foto" accept="image/*,.pdf,.txt,.md" multiple style="display:none" onchange="car2UploadChange(this)">
+            <div onclick="document.getElementById('car2-upload-foto').click()" id="car2-upload-dz" style="border:2px dashed var(--line2);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px" onmouseover="this.style.borderColor='var(--gold-border)'" onmouseout="this.style.borderColor='var(--line2)'">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div style="font-size:12px;color:var(--cream-mid);margin-bottom:3px">Clique para selecionar</div>
+              <div style="font-size:9px;color:var(--cream-dim);font-family:monospace">FOTO · PDF · TXT · MÚLTIPLOS</div>
+            </div>
+            <div id="car2-upload-prev" style="display:none;margin-bottom:10px"></div>
+            <div class="ctrl-grp">
+              <span class="ctrl-lbl">Contexto adicional (opcional)</span>
+              <textarea id="car2-upload-ctx" rows="2" placeholder="Ex: resultado de paciente, quero prova social" style="min-height:56px"></textarea>
+            </div>
           </div>
 
           <div class="divider"></div>
@@ -2278,6 +2293,11 @@ function car2Init(){
     });
   }
   // file input handled by car2FotoChange() below
+  const uploadInput=document.getElementById('car2-upload-foto');
+  if(uploadInput&&!uploadInput._wired){
+    uploadInput._wired=true;
+    uploadInput.addEventListener('change',function(){car2UploadChange(this);});
+  }
 }
 
 function car2FotoChange(input){
@@ -2355,6 +2375,57 @@ function car2ImportarConsultor(){
   }
 }
 
+let car2UploadArquivos=[];
+
+function car2UploadChange(input){
+  const files=Array.from(input.files||[]);
+  if(!files.length)return;
+  const prev=document.getElementById('car2-upload-prev');
+  const dz=document.getElementById('car2-upload-dz');
+  if(dz)dz.innerHTML='<div class="spinner" style="margin:0 auto;width:16px;height:16px;border-color:var(--gold);border-top-color:transparent"></div>';
+  let loaded=0;const total=files.length;
+  files.forEach(function(file){
+    const isImg=file.type.startsWith('image/');
+    const isPDF=file.type==='application/pdf';
+    const isTxt=file.type.startsWith('text/')||file.name.endsWith('.txt')||file.name.endsWith('.md');
+    const rd=new FileReader();
+    if(isImg||isPDF){
+      rd.onload=function(ev){
+        car2UploadArquivos.push({tipo:isImg?'imagem':'pdf',base64:ev.target.result.split(',')[1],mediaType:file.type,nome:file.name});
+        loaded++;if(loaded===total)car2UploadRenderPrev(dz,prev);
+      };
+      rd.readAsDataURL(file);
+    } else if(isTxt){
+      rd.onload=function(ev){
+        car2UploadArquivos.push({tipo:'texto',texto:ev.target.result,nome:file.name});
+        loaded++;if(loaded===total)car2UploadRenderPrev(dz,prev);
+      };
+      rd.readAsText(file);
+    } else {loaded++;if(loaded===total)car2UploadRenderPrev(dz,prev);}
+  });
+  input.value='';
+}
+
+function car2UploadRenderPrev(dz,prev){
+  if(dz)dz.style.display='none';
+  if(!prev)return;
+  prev.style.display='block';
+  prev.innerHTML=car2UploadArquivos.map(function(d){
+    if(d.tipo==='imagem')return '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:3px;margin:0 6px 6px 0;vertical-align:top"><img src="data:'+d.mediaType+';base64,'+d.base64+'" style="width:64px;height:64px;object-fit:cover;border-radius:7px;border:2px solid var(--gold-border)"><span style="font-size:8px;font-family:monospace;color:var(--green)">✓</span></div>';
+    return '<div style="font-size:10px;color:var(--gold);padding:5px 10px;background:var(--surface2);border:1px solid var(--gold-border);border-radius:6px;margin:0 5px 5px 0;display:inline-block">'+d.nome+'</div>';
+  }).join('')+
+  '<div style="font-size:9px;font-family:monospace;color:var(--green);margin-top:4px">'+car2UploadArquivos.length+' arquivo'+(car2UploadArquivos.length>1?'s':'')+
+  ' \xb7 <span style="color:var(--cream-dim);cursor:pointer;text-decoration:underline" onclick="car2LimparUpload()">limpar</span></div>';
+}
+
+function car2LimparUpload(){
+  car2UploadArquivos=[];
+  var p=document.getElementById('car2-upload-prev');
+  var d=document.getElementById('car2-upload-dz');
+  if(p)p.style.display='none';
+  if(d){d.style.display='block';d.innerHTML='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div style="font-size:12px;color:var(--cream-mid);margin-bottom:3px">Clique para selecionar</div><div style="font-size:9px;color:var(--cream-dim);font-family:monospace">FOTO \xb7 PDF \xb7 TXT \xb7 M\xdaLTIPLOS</div>';}
+}
+
 function car2GetTema(){
   const activeTab=document.querySelector('.car2-stab.active');
   if(!activeTab)return document.getElementById('car2-tema').value.trim();
@@ -2367,21 +2438,43 @@ function car2GetTema(){
   if(src.includes('Consultor')){
     return window._conGancho?window._conGancho.split('\n')[0].trim():'';
   }
+  if(src.includes('foto')||src.includes('Da foto')){
+    return '__upload__';
+  }
   return document.getElementById('car2-tema').value.trim();
 }
 
 async function car2Gerar(){
   const tema=car2GetTema();
   const nSlides=parseInt(document.getElementById('car2-nslides').value)||8;
-  if(!tema){
+  const modoUpload=(tema==='__upload__');
+  if(!modoUpload&&!tema){
     document.getElementById('car2-empty').innerHTML='<div class="erro-msg">Digite ou selecione o tema antes de gerar.</div>';
     return;
   }
-  load('btn-car2',true,'Fable 5 gerando conteúdo...');
+  if(modoUpload&&!car2UploadArquivos.length){
+    document.getElementById('car2-empty').innerHTML='<div class="erro-msg">Suba pelo menos um arquivo antes de gerar.</div>';
+    return;
+  }
+  load('btn-car2',true,modoUpload?'Claude analisando arquivo...':'Fable 5 gerando conteúdo...');
   document.getElementById('car2-empty').style.display='flex';
   document.getElementById('car2-output').style.display='none';
-  document.getElementById('car2-empty').innerHTML='<div style="text-align:center;padding:40px 0;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:22px;height:22px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px;margin-bottom:4px">Fable 5 criando o conteúdo...</p><p style="font-size:11px;opacity:.6">Depois o Canvas renderiza os slides</p></div>';
+  document.getElementById('car2-empty').innerHTML='<div style="text-align:center;padding:40px 0;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:22px;height:22px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px;margin-bottom:4px">'+(modoUpload?'Claude analisando o arquivo...':'Fable 5 criando o conteúdo...')+'</p><p style="font-size:11px;opacity:.6">Depois o Canvas renderiza os slides</p></div>';
 
+  // Build prompt or content blocks
+  let _apiMessages;
+  if(modoUpload){
+    const ctx=(document.getElementById('car2-upload-ctx')||{}).value||'';
+    const instrUpload='Crie exatamente '+nSlides+' slides para carrossel Instagram baseados nos arquivos enviados.'+(ctx?' Contexto: "'+ctx+'"':'')+'.\n\nPadrao @thiagobarros. REGRAS:\n- Slide 1 (CAPA): titulo EM CAIXA ALTA, max 6 palavras. Subtitulo: 1 frase.\n- Slide 2 (tipo intro): valida a situacao, max 18 palavras.\n- Slides 3 a '+(nSlides-1)+' (tipo dica): TITULO curtissimo e TEXTO max 20 palavras.\n- Slide '+nSlides+' (tipo cta): verdade final.\nJSON apenas: {"slides":[{"num":1,"tipo":"capa","titulo":"TITULO","subtitulo":"sub"},...],"legenda":"legenda com CTA e 3 hashtags"}';
+    const blocks=[];
+    car2UploadArquivos.forEach(function(d,i){
+      if(d.tipo==='imagem'){blocks.push({type:'image',source:{type:'base64',media_type:d.mediaType,data:d.base64}});blocks.push({type:'text',text:'[Foto '+(i+1)+']'});}
+      else if(d.tipo==='pdf'){blocks.push({type:'document',source:{type:'base64',media_type:d.mediaType,data:d.base64}});}
+      else{blocks.push({type:'text',text:d.texto});}
+    });
+    blocks.push({type:'text',text:instrUpload});
+    _apiMessages=[{role:'user',content:blocks}];
+  }
   const prompt=`Crie exatamente ${nSlides} slides para carrossel Instagram sobre: "${tema}".
 
 Padrao @thiagobarros. REGRAS:
@@ -2394,7 +2487,7 @@ JSON apenas, sem markdown:
 {"slides":[{"num":1,"tipo":"capa","titulo":"TITULO","subtitulo":"sub"},{"num":2,"tipo":"intro","titulo":"","texto":""},{"num":3,"tipo":"dica","titulo":"","texto":""},...,{"num":${nSlides},"tipo":"cta","titulo":""}],"legenda":"legenda completa com CTA e 3 hashtags"}`;
 
   try{
-    const texto=await apiFable([{role:'user',content:prompt}],PERFIL,2000);
+    const texto=await apiFable(modoUpload?_apiMessages:[{role:'user',content:prompt}],PERFIL,2000);
     const jsonMatch=texto.match(/\{[\s\S]*\}/);
     if(!jsonMatch)throw new Error('JSON não encontrado na resposta');
     const data=JSON.parse(jsonMatch[0]);
