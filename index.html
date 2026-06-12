@@ -354,7 +354,7 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
 
           <!-- PAINEL ARQUIVO -->
           <div id="motor-painel-arquivo" style="display:none">
-            <input type="file" id="motor-arquivo" accept="image/*,.pdf,.txt,.md" style="display:none" onchange="motorArquivoChange(this)">
+            <input type="file" id="motor-arquivo" accept="image/*,.pdf,.txt,.md" multiple style="display:none" onchange="motorArquivoChange(this)">
             <div onclick="document.getElementById('motor-arquivo').click()" id="motor-dropzone" style="border:2px dashed var(--line2);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px" onmouseover="this.style.borderColor='var(--gold-border)'" onmouseout="this.style.borderColor='var(--line2)'">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6" style="margin-bottom:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <div style="font-size:13px;color:var(--cream-mid);margin-bottom:4px">Clique para selecionar</div>
@@ -1744,80 +1744,73 @@ function motorSwitchTab(tab){
 }
 
 function motorArquivoChange(input){
-  const file=input.files[0];
-  if(!file)return;
+  const files=Array.from(input.files||[]);
+  if(!files.length)return;
   const prev=document.getElementById('motor-arquivo-preview');
   const dz=document.getElementById('motor-dropzone');
-
-  const isImg=file.type.startsWith('image/');
-  const isPDF=file.type==='application/pdf';
-  const isTxt=file.type.startsWith('text/')||file.name.endsWith('.txt')||file.name.endsWith('.md');
-
   if(dz)dz.innerHTML='<div class="spinner" style="margin:0 auto;width:18px;height:18px;border-color:var(--gold);border-top-color:transparent"></div>';
-
-  const rd=new FileReader();
-
-  if(isImg||isPDF){
-    rd.onload=function(ev){
-      const b64=ev.target.result.split(',')[1];
-      motorArquivoDados={tipo:isImg?'imagem':'pdf',base64:b64,mediaType:file.type,nome:file.name};
-      if(prev){
-        prev.style.display='block';
-        if(isImg){
-          prev.innerHTML='<img src="'+ev.target.result+'" style="max-height:120px;border-radius:8px;border:1px solid var(--line);display:block;margin-bottom:6px">'+
-            '<div style="font-size:10px;font-family:monospace;color:var(--green)">✓ '+file.name+' carregada</div>';
-        } else {
-          prev.innerHTML='<div style="padding:10px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--gold-border);font-size:12px;color:var(--gold)">'+
-            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
-            file.name+'</div>';
-        }
-      }
-      if(dz)dz.style.display='none';
-    };
-    rd.readAsDataURL(file);
-  } else if(isTxt){
-    rd.onload=function(ev){
-      motorArquivoDados={tipo:'texto',texto:ev.target.result,nome:file.name};
-      if(prev){
-        prev.style.display='block';
-        prev.innerHTML='<div style="padding:10px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--line);font-size:11.5px;color:var(--cream-mid);max-height:90px;overflow:hidden">'+
-          esc(ev.target.result.substring(0,300))+(ev.target.result.length>300?'...':'')+'</div>'+
-          '<div style="font-size:10px;font-family:monospace;color:var(--green);margin-top:5px">✓ '+file.name+' carregado</div>';
-      }
-      if(dz)dz.style.display='none';
-    };
-    rd.readAsText(file);
-  } else {
-    if(dz)dz.innerHTML='<div style="color:var(--red);font-size:12px">Formato não suportado. Use foto, PDF ou TXT.</div>';
-  }
+  let loaded=0;const total=files.length;
+  files.forEach(function(file){
+    const isImg=file.type.startsWith('image/');
+    const isPDF=file.type==='application/pdf';
+    const isTxt=file.type.startsWith('text/')||file.name.endsWith('.txt')||file.name.endsWith('.md');
+    const rd=new FileReader();
+    if(isImg||isPDF){
+      rd.onload=function(ev){
+        const b64=ev.target.result.split(',')[1];
+        motorArquivoDados.push({tipo:isImg?'imagem':'pdf',base64:b64,mediaType:file.type,nome:file.name});
+        loaded++;if(loaded===total)motorRenderPreview(dz,prev);
+      };
+      rd.readAsDataURL(file);
+    } else if(isTxt){
+      rd.onload=function(ev){
+        motorArquivoDados.push({tipo:'texto',texto:ev.target.result,nome:file.name});
+        loaded++;if(loaded===total)motorRenderPreview(dz,prev);
+      };
+      rd.readAsText(file);
+    } else {loaded++;if(loaded===total)motorRenderPreview(dz,prev);}
+  });
   input.value='';
 }
 
-function motorMontarMensagemArquivo(fase,pergunta,contexto){
-  const fa=motorGetFase(motorDia);
-  const faseInstr={
-    0:'FASE FUNDACAO: instalar identidade e diferencial do Andre. CTA: seguir e salvar.',
-    1:'FASE AUTORIDADE: conteudo denso para salvar e compartilhar. CTA: salvar.',
-    2:'FASE CONVERSAO: CTA direto para consulta.'
-  }[fa];
-
-  const d=motorArquivoDados;
-  const ctxExtra=contexto?('\n\nCONTEXTO DO NUTRICIONISTA: "'+contexto+'"'):'';
-
-  const instrucao='Analise o arquivo enviado e gere 3 formatos de conteudo para Instagram baseados no que voce ve/le.\n\n'+faseInstr+ctxExtra+'\n\nFORMATO 1: CARROSSEL\nSlide 1 (CAPA): gancho EM CAIXA ALTA, max 8 palavras\nSlides 2-7: dicas ou pontos, 1 por slide\nSlide 8 (FECHAMENTO): verdade simples\nSlide 9 (CTA): acao clara\n\nFORMATO 2: ROTEIRO DE REELS\nHook (0-3s): frase que para o scroll\nRoteiro: max 90 palavras\nLegenda com 3 hashtags\n\nFORMATO 3: SEQUENCIA DE STORIES (5 stories)\n\nAo final: INSIGHT: por que esse conteudo funciona para a fase '+fase.nome+' em 2 frases.\n\nSepare com: ===CARROSSEL=== ===REELS=== ===STORIES=== ===INSIGHT===';
-
-  if(d.tipo==='texto'){
-    return [{role:'user',content:'ARQUIVO DE TEXTO: '+d.nome+'\n\nCONTEUDO:\n'+d.texto+'\n\n'+instrucao}];
-  }
-  // imagem ou pdf
-  const msgContent=[
-    {type:d.tipo==='pdf'?'document':'image',
-     source:{type:'base64',media_type:d.mediaType,data:d.base64}},
-    {type:'text',text:instrucao}
-  ];
-  return [{role:'user',content:msgContent}];
+function motorLimparArquivos(){
+  motorArquivoDados=[];
+  var p=document.getElementById('motor-arquivo-preview');
+  var d=document.getElementById('motor-dropzone');
+  if(p)p.style.display='none';
+  if(d){d.style.display='block';d.innerHTML='<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6" style="margin-bottom:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div style="font-size:13px;color:var(--cream-mid);margin-bottom:4px">Clique para selecionar</div><div style="font-size:10px;color:var(--cream-dim);font-family:monospace">FOTO · PDF · TXT</div>';}
 }
 
+function motorRenderPreview(dz,prev){
+  if(dz)dz.style.display='none';
+  if(!prev)return;
+  prev.style.display='block';
+  prev.innerHTML=motorArquivoDados.map(function(d){
+    if(d.tipo==='imagem')return '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:4px;margin:0 6px 6px 0;vertical-align:top"><img src="data:'+d.mediaType+';base64,'+d.base64+'" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:2px solid var(--gold-border)"><span style="font-size:8px;font-family:monospace;color:var(--green)">✓</span></div>';
+    if(d.tipo==='pdf')return '<div style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surface2);border:1px solid var(--gold-border);border-radius:8px;margin:0 6px 6px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="font-size:11px;color:var(--gold)">'+d.nome+'</span></div>';
+    return '<div style="font-size:11px;color:var(--cream-mid);padding:6px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">📄 '+d.nome+'</div>';
+  }).join('')+
+  '<div style="font-size:10px;font-family:monospace;color:var(--green);margin-top:4px">'+motorArquivoDados.length+' arquivo'+(motorArquivoDados.length>1?'s':'')+' carregado'+(motorArquivoDados.length>1?'s':'')+
+  ' · <span style="color:var(--cream-dim);cursor:pointer;text-decoration:underline" onclick="motorLimparArquivos()">limpar</span></div>';
+}
+function motorMontarMensagemArquivo(fase,contexto){
+  const fa=motorGetFase(motorDia);
+  const faseInstr={0:'FASE FUNDACAO: instalar identidade e diferencial do Andre. CTA: seguir e salvar.',1:'FASE AUTORIDADE: conteudo denso para salvar e compartilhar. CTA: salvar.',2:'FASE CONVERSAO: CTA direto para consulta.'}[fa];
+  const ctxExtra=contexto?('\n\nCONTEXTO: "'+contexto+'"'):'';
+  const instrucao='Analise os arquivos enviados e gere 3 formatos de conteudo para Instagram.\n\n'+faseInstr+ctxExtra+'\n\nFORMATO 1: CARROSSEL\nSlide 1 (CAPA): gancho EM CAIXA ALTA, max 8 palavras\nSlides 2-7: dicas ou pontos, 1 por slide\nSlide 8 (FECHAMENTO): verdade simples\nSlide 9 (CTA): acao clara\n\nFORMATO 2: ROTEIRO DE REELS\nHook (0-3s): frase que para o scroll\nRoteiro: max 90 palavras\nLegenda com 3 hashtags\n\nFORMATO 3: SEQUENCIA DE STORIES (5 stories)\n\nAo final: INSIGHT: por que esse conteudo funciona para a fase '+fase.nome+' em 2 frases.\n\nSepare com: ===CARROSSEL=== ===REELS=== ===STORIES=== ===INSIGHT===';
+  const imagens=motorArquivoDados.filter(function(d){return d.tipo==='imagem';});
+  const pdfs=motorArquivoDados.filter(function(d){return d.tipo==='pdf';});
+  const textos=motorArquivoDados.filter(function(d){return d.tipo==='texto';});
+  const content=[];
+  imagens.forEach(function(d,i){
+    content.push({type:'image',source:{type:'base64',media_type:d.mediaType,data:d.base64}});
+    content.push({type:'text',text:'[Foto '+(i+1)+': '+d.nome+']'});
+  });
+  pdfs.forEach(function(d){content.push({type:'document',source:{type:'base64',media_type:d.mediaType,data:d.base64}});});
+  textos.forEach(function(d){content.push({type:'text',text:'ARQUIVO: '+d.nome+'\n'+d.texto});});
+  content.push({type:'text',text:instrucao});
+  return content;
+}
 
 function motorInit(){
   motorRenderBar();
@@ -1895,7 +1888,7 @@ async function motorGerar(){
 
   if(modoArquivo){
     // === MODO ARQUIVO ===
-    if(!motorArquivoDados){
+    if(!motorArquivoDados||!motorArquivoDados.length){
       if(out){out.style.display='block';out.innerHTML='<div class="erro-msg">Suba um arquivo antes de gerar.</div>';}
       if(empty)empty.style.display='none';
       return;
@@ -1905,8 +1898,8 @@ async function motorGerar(){
     if(out){out.style.display='block';out.innerHTML='<div style="text-align:center;padding:50px 0;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:20px;height:20px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px">Claude analisando o arquivo...</p><p style="font-size:11px;opacity:.6;margin-top:4px">'+motorArquivoDados.nome+'</p></div>';}
     const contexto=(document.getElementById('motor-arquivo-contexto')||{}).value||'';
     try{
-      const msgs=motorMontarMensagemArquivo(fase,pergunta,contexto);
-      const texto=await api(msgs[0].content,2500);
+      const contentBlocks=motorMontarMensagemArquivo(fase,contexto);
+      const texto=await api(contentBlocks,2500);
       motorRenderOutput(texto,fase);
     }catch(e){
       if(out)out.innerHTML='<div class="erro-msg">'+esc(e.message||'Erro ao analisar arquivo.')+'</div>';
