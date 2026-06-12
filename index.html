@@ -1723,7 +1723,7 @@ function motorGetFase(dia){
 
 
 // ── Motor: upload de arquivo ─────────────────────────────────────────────
-let motorArquivoDados = null; // {tipo, base64, mediaType, nome, texto}
+let motorArquivoDados = [];
 
 function motorSwitchTab(tab){
   const txt=document.getElementById('motor-painel-texto');
@@ -1813,6 +1813,11 @@ function motorMontarMensagemArquivo(fase,contexto){
 }
 
 function motorInit(){
+  var motorFileInput=document.getElementById('motor-arquivo');
+  if(motorFileInput&&!motorFileInput._wired){
+    motorFileInput._wired=true;
+    motorFileInput.addEventListener('change',function(){motorArquivoChange(this);});
+  }
   motorRenderBar();
   motorRenderFases();
   motorRenderPergunta();
