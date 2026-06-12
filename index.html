@@ -337,11 +337,36 @@ textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
           <div class="motor-q" id="motor-q-text">"O que você viu em consulta essa semana que surpreendeu um paciente?"</div>
           <div class="motor-why" id="motor-q-why">Histórias reais de consultório têm credibilidade que nenhum conteúdo técnico alcança. Esse é o ativo que nenhum concorrente pode copiar.</div>
 
-          <div class="ctrl-grp">
-            <span class="ctrl-lbl">Sua resposta · fala livre</span>
-            <textarea id="motor-input" rows="6" placeholder="Escreve do jeito que você fala. Sem pensar em post. 3 a 5 frases já bastam..." style="min-height:130px"></textarea>
-            <span style="font-size:10px;color:var(--cream-dim);font-family:monospace;text-align:right;margin-top:4px" id="motor-chars">0 caracteres</span>
+          <!-- TABS: texto / arquivo -->
+          <div style="display:flex;gap:6px;margin-bottom:12px">
+            <button id="motor-tab-texto" onclick="motorSwitchTab('texto')" style="flex:1;padding:7px;border-radius:6px;font-size:10px;font-family:monospace;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--gold-border);background:var(--gold-dim);color:var(--gold);cursor:pointer">Texto livre</button>
+            <button id="motor-tab-arquivo" onclick="motorSwitchTab('arquivo')" style="flex:1;padding:7px;border-radius:6px;font-size:10px;font-family:monospace;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--line2);background:transparent;color:var(--cream-dim);cursor:pointer">Subir arquivo</button>
           </div>
+
+          <!-- PAINEL TEXTO -->
+          <div id="motor-painel-texto">
+            <div class="ctrl-grp">
+              <span class="ctrl-lbl">Sua resposta · fala livre</span>
+              <textarea id="motor-input" rows="6" placeholder="Escreve do jeito que você fala. Sem pensar em post. 3 a 5 frases já bastam..." style="min-height:130px"></textarea>
+              <span style="font-size:10px;color:var(--cream-dim);font-family:monospace;text-align:right;margin-top:4px" id="motor-chars">0 caracteres</span>
+            </div>
+          </div>
+
+          <!-- PAINEL ARQUIVO -->
+          <div id="motor-painel-arquivo" style="display:none">
+            <input type="file" id="motor-arquivo" accept="image/*,.pdf,.txt,.md" style="display:none" onchange="motorArquivoChange(this)">
+            <div onclick="document.getElementById('motor-arquivo').click()" id="motor-dropzone" style="border:2px dashed var(--line2);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px" onmouseover="this.style.borderColor='var(--gold-border)'" onmouseout="this.style.borderColor='var(--line2)'">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6" style="margin-bottom:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div style="font-size:13px;color:var(--cream-mid);margin-bottom:4px">Clique para selecionar</div>
+              <div style="font-size:10px;color:var(--cream-dim);font-family:monospace">FOTO · PDF · TXT</div>
+            </div>
+            <div id="motor-arquivo-preview" style="display:none;margin-bottom:10px"></div>
+            <div class="ctrl-grp">
+              <span class="ctrl-lbl">Contexto adicional (opcional)</span>
+              <textarea id="motor-arquivo-contexto" rows="3" placeholder="Ex: Esse é um resultado de paciente meu. Quero transformar em post de prova social." style="min-height:70px"></textarea>
+            </div>
+          </div>
+
           <button class="btn btn-primary" id="btn-motor" onclick="motorGerar()" style="width:100%;margin-top:10px;justify-content:center">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 8v4l3 3"/></svg>
             Transformar em conteúdo
@@ -1040,12 +1065,14 @@ ${EPOCA}`;
 
 async function api(prompt,max=2500,systemOverride){
   const sys=systemOverride||PERFIL;
+  // prompt pode ser string simples ou array de content blocks (para visão)
+  const content=typeof prompt==='string'?prompt:prompt;
   let r;
   try{
     r=await fetch("https://nutriandre-proxy.vercel.app/api/chat",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:max,system:sys,messages:[{role:"user",content:prompt}]})
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:max,system:sys,messages:[{role:"user",content:content}]})
     });
   }catch(e){throw new Error("Sem conexao com o servidor. Verifique sua internet e tente novamente.");}
   if(!r.ok){
@@ -1694,6 +1721,104 @@ function motorGetFase(dia){
   return 2;
 }
 
+
+// ── Motor: upload de arquivo ─────────────────────────────────────────────
+let motorArquivoDados = null; // {tipo, base64, mediaType, nome, texto}
+
+function motorSwitchTab(tab){
+  const txt=document.getElementById('motor-painel-texto');
+  const arq=document.getElementById('motor-painel-arquivo');
+  const btnTxt=document.getElementById('motor-tab-texto');
+  const btnArq=document.getElementById('motor-tab-arquivo');
+  if(tab==='texto'){
+    if(txt)txt.style.display='block';
+    if(arq)arq.style.display='none';
+    if(btnTxt){btnTxt.style.background='var(--gold-dim)';btnTxt.style.color='var(--gold)';btnTxt.style.borderColor='var(--gold-border)';}
+    if(btnArq){btnArq.style.background='transparent';btnArq.style.color='var(--cream-dim)';btnArq.style.borderColor='var(--line2)';}
+  } else {
+    if(txt)txt.style.display='none';
+    if(arq)arq.style.display='block';
+    if(btnArq){btnArq.style.background='var(--gold-dim)';btnArq.style.color='var(--gold)';btnArq.style.borderColor='var(--gold-border)';}
+    if(btnTxt){btnTxt.style.background='transparent';btnTxt.style.color='var(--cream-dim)';btnTxt.style.borderColor='var(--line2)';}
+  }
+}
+
+function motorArquivoChange(input){
+  const file=input.files[0];
+  if(!file)return;
+  const prev=document.getElementById('motor-arquivo-preview');
+  const dz=document.getElementById('motor-dropzone');
+
+  const isImg=file.type.startsWith('image/');
+  const isPDF=file.type==='application/pdf';
+  const isTxt=file.type.startsWith('text/')||file.name.endsWith('.txt')||file.name.endsWith('.md');
+
+  if(dz)dz.innerHTML='<div class="spinner" style="margin:0 auto;width:18px;height:18px;border-color:var(--gold);border-top-color:transparent"></div>';
+
+  const rd=new FileReader();
+
+  if(isImg||isPDF){
+    rd.onload=function(ev){
+      const b64=ev.target.result.split(',')[1];
+      motorArquivoDados={tipo:isImg?'imagem':'pdf',base64:b64,mediaType:file.type,nome:file.name};
+      if(prev){
+        prev.style.display='block';
+        if(isImg){
+          prev.innerHTML='<img src="'+ev.target.result+'" style="max-height:120px;border-radius:8px;border:1px solid var(--line);display:block;margin-bottom:6px">'+
+            '<div style="font-size:10px;font-family:monospace;color:var(--green)">✓ '+file.name+' carregada</div>';
+        } else {
+          prev.innerHTML='<div style="padding:10px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--gold-border);font-size:12px;color:var(--gold)">'+
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
+            file.name+'</div>';
+        }
+      }
+      if(dz)dz.style.display='none';
+    };
+    rd.readAsDataURL(file);
+  } else if(isTxt){
+    rd.onload=function(ev){
+      motorArquivoDados={tipo:'texto',texto:ev.target.result,nome:file.name};
+      if(prev){
+        prev.style.display='block';
+        prev.innerHTML='<div style="padding:10px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--line);font-size:11.5px;color:var(--cream-mid);max-height:90px;overflow:hidden">'+
+          esc(ev.target.result.substring(0,300))+(ev.target.result.length>300?'...':'')+'</div>'+
+          '<div style="font-size:10px;font-family:monospace;color:var(--green);margin-top:5px">✓ '+file.name+' carregado</div>';
+      }
+      if(dz)dz.style.display='none';
+    };
+    rd.readAsText(file);
+  } else {
+    if(dz)dz.innerHTML='<div style="color:var(--red);font-size:12px">Formato não suportado. Use foto, PDF ou TXT.</div>';
+  }
+  input.value='';
+}
+
+function motorMontarMensagemArquivo(fase,pergunta,contexto){
+  const fa=motorGetFase(motorDia);
+  const faseInstr={
+    0:'FASE FUNDACAO: instalar identidade e diferencial do Andre. CTA: seguir e salvar.',
+    1:'FASE AUTORIDADE: conteudo denso para salvar e compartilhar. CTA: salvar.',
+    2:'FASE CONVERSAO: CTA direto para consulta.'
+  }[fa];
+
+  const d=motorArquivoDados;
+  const ctxExtra=contexto?('\n\nCONTEXTO DO NUTRICIONISTA: "'+contexto+'"'):'';
+
+  const instrucao='Analise o arquivo enviado e gere 3 formatos de conteudo para Instagram baseados no que voce ve/le.\n\n'+faseInstr+ctxExtra+'\n\nFORMATO 1: CARROSSEL\nSlide 1 (CAPA): gancho EM CAIXA ALTA, max 8 palavras\nSlides 2-7: dicas ou pontos, 1 por slide\nSlide 8 (FECHAMENTO): verdade simples\nSlide 9 (CTA): acao clara\n\nFORMATO 2: ROTEIRO DE REELS\nHook (0-3s): frase que para o scroll\nRoteiro: max 90 palavras\nLegenda com 3 hashtags\n\nFORMATO 3: SEQUENCIA DE STORIES (5 stories)\n\nAo final: INSIGHT: por que esse conteudo funciona para a fase '+fase.nome+' em 2 frases.\n\nSepare com: ===CARROSSEL=== ===REELS=== ===STORIES=== ===INSIGHT===';
+
+  if(d.tipo==='texto'){
+    return [{role:'user',content:'ARQUIVO DE TEXTO: '+d.nome+'\n\nCONTEUDO:\n'+d.texto+'\n\n'+instrucao}];
+  }
+  // imagem ou pdf
+  const msgContent=[
+    {type:d.tipo==='pdf'?'document':'image',
+     source:{type:'base64',media_type:d.mediaType,data:d.base64}},
+    {type:'text',text:instrucao}
+  ];
+  return [{role:'user',content:msgContent}];
+}
+
+
 function motorInit(){
   motorRenderBar();
   motorRenderFases();
@@ -1757,10 +1882,42 @@ function motorRenderPergunta(){
 }
 
 async function motorGerar(){
-  const inputEl=document.getElementById('motor-input');
-  const input=(inputEl?inputEl.value:'').trim();
   const out=document.getElementById('motor-output');
   const empty=document.getElementById('motor-empty');
+  const fa=motorGetFase(motorDia);
+  const fase=MOTOR_FASES[fa];
+  const idx=motorDiaSemana%MOTOR_PERGUNTAS.length;
+  const pergunta=MOTOR_PERGUNTAS[idx];
+
+  // Detectar qual tab está ativa
+  const tabArquivo=document.getElementById('motor-painel-arquivo');
+  const modoArquivo=tabArquivo&&tabArquivo.style.display!=='none';
+
+  if(modoArquivo){
+    // === MODO ARQUIVO ===
+    if(!motorArquivoDados){
+      if(out){out.style.display='block';out.innerHTML='<div class="erro-msg">Suba um arquivo antes de gerar.</div>';}
+      if(empty)empty.style.display='none';
+      return;
+    }
+    load('btn-motor',true,'Analisando arquivo...');
+    if(empty)empty.style.display='none';
+    if(out){out.style.display='block';out.innerHTML='<div style="text-align:center;padding:50px 0;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:20px;height:20px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px">Claude analisando o arquivo...</p><p style="font-size:11px;opacity:.6;margin-top:4px">'+motorArquivoDados.nome+'</p></div>';}
+    const contexto=(document.getElementById('motor-arquivo-contexto')||{}).value||'';
+    try{
+      const msgs=motorMontarMensagemArquivo(fase,pergunta,contexto);
+      const texto=await api(msgs[0].content,2500);
+      motorRenderOutput(texto,fase);
+    }catch(e){
+      if(out)out.innerHTML='<div class="erro-msg">'+esc(e.message||'Erro ao analisar arquivo.')+'</div>';
+    }
+    load('btn-motor',false);
+    return;
+  }
+
+  // === MODO TEXTO ===
+  const inputEl=document.getElementById('motor-input');
+  const input=(inputEl?inputEl.value:'').trim();
   if(!input){
     if(out){out.style.display='block';out.innerHTML='<div class="erro-msg">Escreve sua resposta antes de gerar.</div>';}
     if(empty)empty.style.display='none';
@@ -1769,11 +1926,6 @@ async function motorGerar(){
   load('btn-motor',true,'Transformando...');
   if(empty)empty.style.display='none';
   if(out){out.style.display='block';out.innerHTML='<div style="text-align:center;padding:50px 0;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:20px;height:20px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px">Gerando 3 formatos para essa fase...</p></div>';}
-
-  const fa=motorGetFase(motorDia);
-  const fase=MOTOR_FASES[fa];
-  const idx=motorDiaSemana%MOTOR_PERGUNTAS.length;
-  const pergunta=MOTOR_PERGUNTAS[idx];
 
   const faseInstr={
     0:'FASE FUNDACAO (dias 1-60): o objetivo e instalar uma crenca sobre quem e Andre Aragao. Tom: apresentar, conectar, estabelecer identidade. CTA: seguir e salvar.',
