@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estúdio · André Aragão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0F14;--surface:#111820;--surface2:#182030;--surface3:#1E2A3C;
+  --gold:#C9A84C;--gold-dim:rgba(201,168,76,0.12);--gold-border:rgba(201,168,76,0.25);
+  --cream:#E8E2D4;--cream-mid:rgba(232,226,212,0.6);--cream-dim:rgba(232,226,212,0.35);
+  --line:rgba(232,226,212,0.07);--line2:rgba(232,226,212,0.12);
+  --green:#4CAF7D;--amber:#E8943A;--red:#E07B7B;--blue:#4A9ECC;
+  --sidebar:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box}html{height:100%}
+body{background:var(--bg);color:var(--cream);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.6;height:100%;display:flex;-webkit-font-smoothing:antialiased;}
+.sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:24px 0;position:fixed;top:0;bottom:0;left:0;z-index:100;}
+.sidebar-logo{width:32px;height:32px;margin-bottom:32px;}
+.sb-div{width:24px;height:1px;background:var(--line2);margin:6px 0;}
+.nav-item{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--cream-dim);transition:all .2s;position:relative;background:transparent;border:none;margin:2px 0;}
+.nav-item:hover{background:var(--surface2);color:var(--cream-mid)}
+.nav-item.active{background:var(--gold-dim);color:var(--gold)}
+.nav-item.active::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);width:2px;height:20px;background:var(--gold);border-radius:2px 0 0 2px;}
+.nav-tip{position:absolute;left:calc(var(--sidebar) + 8px);background:var(--surface3);color:var(--cream);font-size:11px;font-weight:500;padding:5px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;border:1px solid var(--line2);letter-spacing:.3px;}
+.nav-item:hover .nav-tip{opacity:1}
+.sb-bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden;}
+.topbar{padding:20px 32px 18px;border-bottom:1px solid var(--line);display:flex;align-items:flex-end;justify-content:space-between;gap:16px;}
+.topbar h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:400;letter-spacing:-.3px;line-height:1.1;}
+.topbar h1 em{font-style:italic;color:var(--gold)}
+.topbar-sub{font-size:11px;color:var(--cream-dim);margin-top:4px;letter-spacing:.2px;}
+.tb-badge{font-family:monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-border);padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.workspace{flex:1;overflow-y:auto;padding:28px 32px 60px;}
+.panel{display:none}.panel.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.sec-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:400;color:var(--cream);margin-bottom:6px;line-height:1.2;}
+.sec-desc{font-size:12.5px;color:var(--cream-dim);line-height:1.6;max-width:560px;margin-bottom:22px;}
+.ctrl-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;align-items:flex-end;}
+.ctrl-grp{display:flex;flex-direction:column;gap:6px;}
+.ctrl-lbl{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--cream-dim);}
+select,input,textarea{background:var(--surface);border:1px solid var(--line2);color:var(--cream);padding:10px 14px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .2s,background .2s;appearance:none;-webkit-appearance:none;}
+select{cursor:pointer;padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+select:focus,input:focus,textarea:focus{border-color:var(--gold-border);background:var(--surface2);}
+textarea{width:100%;resize:vertical;min-height:90px;line-height:1.65;}
+.btn{padding:10px 22px;border-radius:8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.4px;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),#A67C2E);color:#0A0F14;}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;border:1px solid var(--line2);color:var(--cream-mid);}
+.btn-ghost:hover{border-color:var(--gold-border);color:var(--cream);}
+.spinner{width:13px;height:13px;border:2px solid rgba(10,15,20,.4);border-top-color:#0A0F14;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pautas-grid{display:flex;flex-direction:column;gap:12px;}
+.pauta-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden;}
+.pauta-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);transform:scaleY(0);transform-origin:center;transition:transform .22s;}
+.pauta-card:hover{border-color:var(--gold-border);background:var(--surface2);transform:translateX(4px);}
+.pauta-card:hover::before{transform:scaleY(1)}
+.pauta-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.badge{font-family:monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:4px;}
+.b-fmt{background:var(--gold);color:#0A0F14;}
+.b-aut{background:transparent;border:1px solid rgba(74,158,204,.4);color:var(--blue);}
+.b-ide{background:transparent;border:1px solid rgba(76,175,125,.4);color:var(--green);}
+.b-pro{background:transparent;border:1px solid rgba(232,148,58,.4);color:var(--amber);}
+.b-ven{background:transparent;border:1px solid rgba(224,123,123,.4);color:var(--red);}
+.b-ang{background:transparent;border:1px solid var(--line2);color:var(--cream-dim);}
+.pauta-titulo{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;font-weight:600;color:var(--cream);line-height:1.3;margin-bottom:8px;}
+.pauta-gancho{font-size:12.5px;color:var(--cream-mid);font-style:italic;line-height:1.55;padding-left:12px;border-left:2px solid var(--gold-border);margin-bottom:8px;}
+.pauta-porque{font-size:11.5px;color:var(--cream-dim);line-height:1.5;}
+.pauta-cta{margin-top:12px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:5px;}
+.resultado-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:4px;}
+.resultado-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--surface2);}
+.resultado-label{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
+.resultado-body{padding:22px 24px;white-space:pre-wrap;font-size:13.5px;line-height:1.8;color:var(--cream-mid);}
+.resultado-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;}
+.cal-grid{display:flex;flex-direction:column;gap:10px;}
+.cal-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 20px;display:grid;grid-template-columns:80px 1fr auto;gap:16px;align-items:center;transition:border-color .2s;}
+.cal-item:hover{border-color:var(--line2)}
+.cal-dia{font-family:monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;}
+.cal-tit{font-size:13.5px;font-weight:500;color:var(--cream);margin-bottom:3px;line-height:1.35;}
+.cal-desc{font-size:12px;color:var(--cream-dim);line-height:1.5;}
+.cal-fmt{font-family:monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--cream-dim);background:var(--surface2);padding:4px 10px;border-radius:20px;white-space:nowrap;border:1px solid var(--line);}
+.pilar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:24px;}
+.pilar-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;}
+.pilar-pct{font-family:'Cormorant Garamond',Georgia,serif;font-size:36px;font-weight:600;line-height:1;margin-bottom:6px;}
+.pilar-nm{font-size:12px;font-weight:600;letter-spacing:.5px;margin-bottom:6px;}
+.pilar-desc{font-size:11.5px;color:var(--cream-dim);line-height:1.55;}
+.pilar-bar{height:2px;border-radius:2px;margin-top:14px;opacity:.6;}
+.divider{height:1px;background:var(--line);margin:24px 0;}
+.regra-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;}
+.regra-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:6px;}
+.regra-tit{font-size:12.5px;font-weight:600;color:var(--cream);margin-bottom:2px;}
+.regra-desc{font-size:12px;color:var(--cream-dim);line-height:1.5;}
+.empty{text-align:center;padding:56px 24px;color:var(--cream-dim);}
+.empty-icon{width:48px;height:48px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.empty h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;color:var(--cream-mid);margin-bottom:6px;}
+.empty p{font-size:12.5px;line-height:1.6;max-width:360px;margin:0 auto;}
+.erro-msg{background:rgba(224,123,123,.07);border:1px solid rgba(224,123,123,.2);border-radius:8px;padding:12px 16px;font-size:12.5px;color:var(--red);margin-top:12px;}
+.workspace::-webkit-scrollbar{width:4px}
+.workspace::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+@media(max-width:640px){
+  :root{--sidebar:0px}
+  .sidebar{display:none}
+  .topbar{padding:16px 20px 14px}
+  .workspace{padding:20px 20px 80px}
+  .cal-item{grid-template-columns:60px 1fr}.cal-fmt{display:none}
+  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);padding:8px 4px 12px;justify-content:flex-start;z-index:100;overflow-x:auto;scrollbar-width:none;}
+  .mob-nav::-webkit-scrollbar{display:none}
+  .mob-btn{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--cream-dim);cursor:pointer;padding:4px 12px;font-size:9px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;background:none;border:none;flex-shrink:0;}
+  .mob-btn.active{color:var(--gold)}
+}
+@media(min-width:641px){.mob-nav{display:none}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="#C9A84C" stroke-width="1.5"/><polygon points="16,6 24,22 8,22" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linejoin="round"/><polygon points="16,12 21,22 11,22" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linejoin="round"/><line x1="16" y1="6" x2="16" y2="22" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </div>
+  <div class="sb-div"></div>
+  <button class="nav-item active" data-panel="consultor" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
+    <span class="nav-tip">Consultor · Fable 5</span>
+  </button>
+  <button class="nav-item" data-panel="motor" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 1 21 12M12 2a10 10 0 0 1 7.07 2.93M4.93 19.07A10 10 0 0 1 3 12m8.07 7.93A10 10 0 0 1 4.93 4.93"/><path d="M12 8v4l3 3"/></svg>
+    <span class="nav-tip">Motor · 180 dias</span>
+  </button>
+  <div class="sb-div"></div>
+  <button class="nav-item" data-panel="pautas" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span class="nav-tip">Pautas</span>
+  </button>
+  <button class="nav-item" data-panel="ganchos" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span class="nav-tip">Fábrica de ganchos</span>
+  </button>
+  <button class="nav-item" data-panel="responder" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span class="nav-tip">Responder DMs</span>
+  </button>
+  <button class="nav-item" data-panel="escrever" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    <span class="nav-tip">Escrever</span>
+  </button>
+  <button class="nav-item" data-panel="serie" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <span class="nav-tip">Série de conteúdo</span>
+  </button>
+  <button class="nav-item" data-panel="imagens" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    <span class="nav-tip">Gerar imagens</span>
+  </button>
+  <button class="nav-item" data-panel="reels" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    <span class="nav-tip">Roteiro Reels</span>
+  </button>
+  <button class="nav-item" data-panel="tendencias" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 2 17"/><polyline points="17 6 23 6 23 12"/></svg>
+    <span class="nav-tip">Tendências</span>
+  </button>
+  <button class="nav-item" data-panel="carrossel" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8"/><path d="M12 3v4"/></svg>
+    <span class="nav-tip">Carrossel</span>
+  </button>
+  <button class="nav-item" data-panel="calendario" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="nav-tip">Calendário</span>
+  </button>
+  <button class="nav-item" data-panel="trinta" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg>
+    <span class="nav-tip">30 dias</span>
+  </button>
+  <button class="nav-item" data-panel="estrategia" onclick="go(this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    <span class="nav-tip">Estratégia e voz</span>
+  </button>
+  <div class="sb-bottom">
+    <div class="sb-div"></div>
+    <button class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span class="nav-tip">André Aragão</span>
+    </button>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1>Estúdio de <em>Conteúdo</em></h1>
+      <div class="topbar-sub">Referência @thiagobarros · Vida real, zero terrorismo · Uso pessoal</div>
+    </div>
+    <div class="tb-badge">v19 · Fable 5 + Sonnet 4.6</div>
+  </div>
+
+  <div class="workspace">
+
+
+
+    <!-- CONSULTOR ESTRATÉGICO · FABLE 5 -->
+    <section class="panel active" id="panel-consultor">
+      <style>
+        .con-wrap{display:grid;grid-template-columns:320px 1fr;gap:28px}
+        @media(max-width:900px){.con-wrap{grid-template-columns:1fr}}
+        .con-entry{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px;position:relative}
+        .con-entry-tipo{font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:5px}
+        .con-entry-txt{font-size:12px;color:var(--cream-mid);line-height:1.55}
+        .con-entry-data{font-size:9px;font-family:monospace;color:var(--cream-dim);margin-top:5px}
+        .con-entry-del{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--cream-dim);cursor:pointer;font-size:13px;padding:2px}
+        .con-entry-del:hover{color:var(--red)}
+        .con-brief{background:var(--surface);border:1px solid var(--gold-border);border-radius:14px;overflow:hidden;margin-bottom:18px}
+        .con-brief-head{padding:14px 20px;background:var(--gold-dim);border-bottom:1px solid var(--gold-border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+        .con-brief-sec{padding:16px 22px;border-bottom:1px solid var(--line)}
+        .con-brief-sec:last-child{border-bottom:none}
+        .con-brief-lbl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+        .con-brief-txt{font-size:13px;color:var(--cream-mid);line-height:1.75;white-space:pre-wrap}
+        .con-chat{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;max-height:420px;overflow-y:auto;padding-right:4px}
+        .con-msg{max-width:85%;padding:11px 15px;border-radius:12px;font-size:13px;line-height:1.65;white-space:pre-wrap}
+        .con-msg.user{align-self:flex-end;background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--cream)}
+        .con-msg.assistant{align-self:flex-start;background:var(--surface2);border:1px solid var(--line);color:var(--cream-mid)}
+        .con-msg-role{font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:4px;opacity:.6}
+        .con-fable-tag{font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1.5px;color:#9B8CE8;background:rgba(155,140,232,.1);border:1px solid rgba(155,140,232,.3);padding:3px 9px;border-radius:20px}
+      </style>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+        <div class="eyebrow" style="margin-bottom:0">Consultor Estratégico</div>
+        <span class="con-fable-tag">CLAUDE FABLE 5</span>
+      </div>
+      <div class="sec-title">Ele lê tudo. Ele fala primeiro.</div>
+      <p class="sec-desc">Alimente o diário de bordo com o que acontece no seu Instagram e no consultório. O Consultor carrega o histórico completo, identifica padrões e te diz o que fazer hoje, antes de você perguntar.</p>
+
+      <div class="con-wrap">
+        <div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:12px">Diário de bordo</div>
+          <div class="ctrl-grp" style="margin-bottom:8px">
+            <select id="con-tipo" style="width:100%">
+              <option value="POST">Post publicado</option>
+              <option value="DM">DM ou comentário recebido</option>
+              <option value="RESULTADO">Resultado de paciente</option>
+              <option value="METRICA">Métrica ou número</option>
+              <option value="NOTA">Nota ou observação</option>
+            </select>
+          </div>
+          <textarea id="con-entrada" rows="3" placeholder="Ex: Publiquei o carrossel do churrasco. 47 salvamentos, 3 DMs perguntando sobre cerveja." style="width:100%;margin-bottom:8px"></textarea>
+          <button class="btn btn-ghost" onclick="conAdd()" style="width:100%;justify-content:center;margin-bottom:18px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Registrar no diário
+          </button>
+          <div id="con-diario"></div>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+            <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim)">Briefing do dia</div>
+            <button class="btn btn-primary" id="btn-con-brief" onclick="conBriefing()" style="font-size:11px;padding:8px 18px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/></svg>
+              Gerar briefing
+            </button>
+          </div>
+          <div id="con-brief-area">
+            <div class="empty" style="padding:36px 24px">
+              <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg></div>
+              <h3>O Consultor está esperando dados</h3>
+              <p>Registre pelo menos 3 entradas no diário e gere o primeiro briefing. Quanto mais histórico, mais preciso ele fica.</p>
+            </div>
+          </div>
+
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin:22px 0 12px">Conversar com o Consultor</div>
+          <div class="con-chat" id="con-chat"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <textarea id="con-msg-input" rows="2" placeholder="Pergunte qualquer coisa sobre estratégia, próximos passos, o que está funcionando..." style="flex:1"></textarea>
+            <button class="btn btn-primary" id="btn-con-msg" onclick="conEnviar()" style="align-self:flex-end">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MOTOR 180 DIAS -->
+    <section class="panel" id="panel-motor">
+      <style>
+        .motor-wrap{display:grid;grid-template-columns:300px 1fr;gap:0;min-height:calc(100vh - 160px)}
+        @media(max-width:900px){.motor-wrap{grid-template-columns:1fr}}
+        .motor-left{border-right:1px solid var(--line);padding-right:24px}
+        .motor-right{padding-left:28px}
+        @media(max-width:900px){.motor-left{border-right:none;padding-right:0}.motor-right{padding-left:0;margin-top:20px}}
+        .motor-phase-bar{display:flex;gap:4px;margin-bottom:6px}
+        .motor-phase-seg{height:4px;border-radius:2px;transition:all .3s}
+        .motor-q-label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+        .motor-q{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-style:italic;color:var(--cream);line-height:1.4;margin-bottom:12px}
+        .motor-why{font-size:11.5px;color:var(--cream-dim);line-height:1.6;padding:10px 13px;background:var(--gold-dim);border-radius:8px;border-left:2px solid var(--gold-border);margin-bottom:16px}
+        .motor-fases{display:flex;flex-direction:column;gap:4px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+        .motor-fase-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px}
+        .motor-fase-row.ativa{background:var(--gold-dim)}
+        .motor-fase-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+        .motor-fase-nm{font-size:12px;font-weight:500;color:var(--cream-mid)}
+        .motor-fase-row.ativa .motor-fase-nm{color:var(--cream)}
+        .motor-fase-range{font-family:monospace;font-size:9px;letter-spacing:1px;color:var(--cream-dim);margin-left:auto}
+        .motor-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .motor-tab{padding:5px 14px;border-radius:20px;font-size:10px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:1px solid var(--line2);color:var(--cream-dim);background:transparent;transition:all .2s;font-weight:600}
+        .motor-tab.active{border-color:var(--gold-border);color:var(--gold);background:var(--gold-dim)}
+        .motor-result{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+        .motor-result-head{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--line);background:var(--surface2)}
+        .motor-result-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
+        .motor-result-body{padding:18px 20px;font-size:13px;line-height:1.85;color:var(--cream-mid);white-space:pre-wrap}
+        .motor-insight{background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+        .motor-day-ctr{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .motor-day-badge{font-family:monospace;font-size:10px;letter-spacing:2px;color:var(--cream-dim)}
+        .motor-phase-badge{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-border);padding:3px 10px;border-radius:20px}
+      </style>
+
+      <div class="eyebrow">Motor de Consistência</div>
+      <div class="sec-title">180 dias para ser a referência número 1</div>
+      <p class="sec-desc">Uma pergunta por dia. 5 minutos de resposta. O Motor transforma o que você viveu em consulta nos 3 formatos certos para essa fase da estratégia.</p>
+
+      <div class="motor-day-ctr">
+        <span class="motor-day-badge" id="motor-day-label">DIA 1 DE 180</span>
+        <span class="motor-phase-badge" id="motor-phase-badge">FUNDAÇÃO</span>
+        <span class="motor-day-badge" id="motor-pct-label">0% concluído</span>
+      </div>
+
+      <div class="motor-phase-bar" id="motor-phase-bar"></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+        <span style="font-size:10px;font-family:monospace;color:var(--blue);letter-spacing:.5px">Fundação</span>
+        <span style="font-size:10px;font-family:monospace;color:var(--gold);letter-spacing:.5px">Autoridade</span>
+        <span style="font-size:10px;font-family:monospace;color:var(--green);letter-spacing:.5px">Conversão</span>
+      </div>
+
+      <div class="motor-wrap">
+        <div class="motor-left">
+          <div class="motor-q-label" id="motor-q-label">SEGUNDA · FUNDAÇÃO</div>
+          <div class="motor-q" id="motor-q-text">"O que você viu em consulta essa semana que surpreendeu um paciente?"</div>
+          <div class="motor-why" id="motor-q-why">Histórias reais de consultório têm credibilidade que nenhum conteúdo técnico alcança. Esse é o ativo que nenhum concorrente pode copiar.</div>
+
+          <div class="ctrl-grp">
+            <span class="ctrl-lbl">Sua resposta · fala livre</span>
+            <textarea id="motor-input" rows="6" placeholder="Escreve do jeito que você fala. Sem pensar em post. 3 a 5 frases já bastam..." style="min-height:130px"></textarea>
+            <span style="font-size:10px;color:var(--cream-dim);font-family:monospace;text-align:right;margin-top:4px" id="motor-chars">0 caracteres</span>
+          </div>
+          <button class="btn btn-primary" id="btn-motor" onclick="motorGerar()" style="width:100%;margin-top:10px;justify-content:center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 8v4l3 3"/></svg>
+            Transformar em conteúdo
+          </button>
+
+          <div class="motor-fases" id="motor-fases-list"></div>
+        </div>
+
+        <div class="motor-right">
+          <div id="motor-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;text-align:center;gap:14px">
+            <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 8v4l3 3"/></svg></div>
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--cream-mid)">Responda a pergunta do dia</h3>
+            <p style="font-size:12.5px;color:var(--cream-dim);max-width:300px;line-height:1.65">Escreve como fala. O Motor transforma sua resposta em Carrossel, Reels e Stories calibrados para essa fase.</p>
+          </div>
+          <div id="motor-output" style="display:none"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAUTAS -->
+    <section class="panel" id="panel-pautas">
+      <div class="eyebrow">Gerador de pautas</div>
+      <div class="sec-title">O que publicar hoje</div>
+      <p class="sec-desc">10 ideias estratégicas por vez com formato, ângulo, gancho pronto e o porquê de cada uma converter seguidores em pacientes.</p>
+      <div class="ctrl-row">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Tema</span>
+          <select id="pauta-tema">
+            <option value="mix">Mix vida real (recomendado)</option>
+            <optgroup label="Vida social">
+              <option value="churrasco">Churrasco e domingo em família</option>
+              <option value="alcool">Cerveja, vinho e happy hour</option>
+              <option value="rodizio">Rodízio, buffet e restaurante</option>
+              <option value="saojoao">São João e comidas juninas</option>
+              <option value="festa">Festa, aniversário e doces</option>
+              <option value="viagem">Viagem e férias sem surtar</option>
+            </optgroup>
+            <optgroup label="Rotina real">
+              <option value="semtempo">Sem tempo de cozinhar</option>
+              <option value="delivery">Delivery e comer fora todo dia</option>
+              <option value="fimdesemana">Fim de semana estraga a dieta?</option>
+              <option value="noite">Comer à noite e beliscar</option>
+            </optgroup>
+            <optgroup label="Shape">
+              <option value="proteina">Proteína na prática</option>
+              <option value="deficit">Déficit sem sofrer</option>
+              <option value="travou">Peso travou</option>
+              <option value="barriga">Gordura abdominal</option>
+              <option value="massa">Ganho de massa</option>
+            </optgroup>
+            <optgroup label="Clínico">
+              <option value="mounjaro">Mounjaro e GLP-1 na vida real</option>
+              <option value="mitos">Mitos que todo mundo acredita</option>
+              <option value="ansiedade">Comer por ansiedade</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Pilar</span>
+          <select id="pauta-pilar">
+            <option value="auto">Distribuição automática</option>
+            <option value="autoridade">Autoridade (40%)</option>
+            <option value="identificacao">Identificação (30%)</option>
+            <option value="prova">Prova social (20%)</option>
+            <option value="venda">Captação (10%)</option>
+          </select>
+        </div>
+        <div class="ctrl-grp" style="justify-content:flex-end">
+          <span class="ctrl-lbl">&nbsp;</span>
+          <button class="btn btn-primary" id="btn-pautas" onclick="gerarPautas()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Gerar pautas
+          </button>
+        </div>
+      </div>
+      <div id="pautas-out">
+        <div class="empty">
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+          <h3>Nenhuma pauta ainda</h3>
+          <p>Escolha um tema e clique em gerar. Cada pauta vem com gancho pronto. Clique nela para escrever o conteúdo completo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- GANCHOS -->
+    <section class="panel" id="panel-ganchos">
+      <div class="eyebrow">Fábrica de ganchos</div>
+      <div class="sec-title">Títulos que param o scroll</div>
+      <p class="sec-desc">O gancho é 80% do post. Aqui saem 10 títulos no padrão @thiagobarros: situação real, caixa alta, dilema que a pessoa está vivendo hoje. Clique em qualquer um para escrever o conteúdo completo.</p>
+      <div class="ctrl-row" style="flex-direction:column;align-items:stretch;gap:12px">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Situações rápidas</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="ganchoRapido('churrasco de domingo e como comer sem sabotar o resultado')">Churrasco</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="ganchoRapido('cerveja, drinks e happy hour pra quem quer shape')">Cerveja</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="ganchoRapido('Sao Joao, canjica, pamonha e comidas juninas')">São João</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="ganchoRapido('rodizio, buffet e comer fora sem culpa')">Rodízio</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="ganchoRapido('exagerou no fim de semana e acha que ferrou tudo')">Fim de semana</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="ganchoRapido('Mounjaro e GLP-1 na vida real')">Mounjaro</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="ganchoRapido('peso travou e a motivacao foi junto')">Peso travou</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="ganchoRapido('viagem de ferias em julho sem perder o shape')">Férias</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div class="ctrl-grp" style="flex:1">
+            <span class="ctrl-lbl">Ou descreva a situação</span>
+            <input type="text" id="gancho-tema" placeholder="Ex: aniversário do filho com mesa de doces e a dieta no meio">
+          </div>
+          <button class="btn btn-primary" id="btn-ganchos" onclick="gerarGanchos()" style="align-self:flex-end">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Gerar ganchos
+          </button>
+        </div>
+      </div>
+      <div id="ganchos-out">
+        <div class="empty">
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <h3>Nenhum gancho ainda</h3>
+          <p>Escolha uma situação ou descreva a sua. Saem 10 títulos prontos no padrão que para o scroll.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESPONDER -->
+    <section class="panel" id="panel-responder">
+      <div class="eyebrow">Comunidade</div>
+      <div class="sec-title">Responder comentários e DMs</div>
+      <p class="sec-desc">Cole o comentário ou a DM que você recebeu. Saem respostas prontas na sua voz, e quando a pergunta for boa, a sugestão de transformar em conteúdo.</p>
+      <div class="ctrl-row" style="flex-direction:column;align-items:stretch;gap:12px">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">O que a pessoa escreveu</span>
+          <textarea id="resp-input" rows="3" placeholder="Ex: Oi André, tomo Mounjaro há 2 meses e não consigo comer quase nada, tô preocupada de perder músculo. O que eu faço?"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="ctrl-grp">
+            <span class="ctrl-lbl">Onde chegou</span>
+            <select id="resp-tipo">
+              <option value="comentario">Comentário no post</option>
+              <option value="dm_duvida">DM com dúvida</option>
+              <option value="dm_preco">DM perguntando preço/consulta</option>
+              <option value="critica">Crítica ou hater</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-resp" onclick="responderMsg()" style="align-self:flex-end">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            Gerar respostas
+          </button>
+        </div>
+      </div>
+      <div id="resp-out">
+        <div class="empty">
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+          <h3>Nenhuma resposta ainda</h3>
+          <p>Cole o que a pessoa escreveu. Cada resposta sai pronta para copiar, na sua voz, sem parecer robô.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCREVER -->
+    <section class="panel" id="panel-escrever">
+      <div class="eyebrow">Escrever conteúdo</div>
+      <div class="sec-title">Do briefing ao texto final</div>
+      <p class="sec-desc">Descreva a ideia ou clique em uma pauta. O conteúdo sai na sua voz: ex-atleta, direto, baseado em ciência, sem terrorismo nutricional.</p>
+      <div class="ctrl-row" style="flex-direction:column;align-items:stretch;gap:12px">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Ideia ou pauta</span>
+          <textarea id="escrever-input" placeholder="Ex: VOU PRO CHURRASCO HOJE, E AGORA? Passo a passo pra comer bem sem sabotar o resultado..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="ctrl-grp">
+            <span class="ctrl-lbl">Formato</span>
+            <select id="escrever-formato">
+              <option value="carrossel">Carrossel (slide a slide)</option>
+              <option value="legenda">Legenda completa</option>
+              <option value="reels">Roteiro de Reels</option>
+              <option value="stories">Sequência de Stories</option>
+            </select>
+          </div>
+          <div class="ctrl-grp">
+            <span class="ctrl-lbl">Pilar</span>
+            <select id="escrever-pilar">
+              <option value="autoridade">Autoridade</option>
+              <option value="identificacao">Identificação</option>
+              <option value="prova">Prova social</option>
+              <option value="venda">Captação</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-escrever" onclick="escreverConteudo()" style="align-self:flex-end">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Escrever
+          </button>
+        </div>
+      </div>
+      <div id="escrever-out"></div>
+    </section>
+
+    <!-- SÉRIE -->
+    <section class="panel" id="panel-serie">
+      <div class="eyebrow">Série de conteúdo</div>
+      <div class="sec-title">Autoridade que se acumula semana a semana</div>
+      <p class="sec-desc">Crie séries temáticas com arco narrativo progressivo. Cada semana aprofunda o tema e fideliza o seguidor até ele estar pronto para agendar.</p>
+
+      <div class="ctrl-row">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Tema da série</span>
+          <select id="serie-tema">
+            <option value="vidasocial">Shape e vida social: dá pra ter os dois</option>
+            <option value="sobrevivencia">Sobrevivendo aos fins de semana</option>
+            <option value="mounjaro">Guia do Mounjaro na vida real</option>
+            <option value="deficit">Emagrecer comendo o que gosta</option>
+            <option value="proteina">Proteína do zero</option>
+            <option value="atleta">20 anos de alto rendimento</option>
+            <option value="comportamento">Sua relação com a comida</option>
+            <option value="personalizado">Tema personalizado</option>
+          </select>
+        </div>
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Duração</span>
+          <select id="serie-dur">
+            <option value="4">4 semanas</option>
+            <option value="6">6 semanas</option>
+          </select>
+        </div>
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Objetivo final</span>
+          <select id="serie-obj">
+            <option value="autoridade">Autoridade e seguidores</option>
+            <option value="captacao">Captar pacientes</option>
+            <option value="engajamento">Engajamento e comunidade</option>
+          </select>
+        </div>
+        <div class="ctrl-grp" style="justify-content:flex-end">
+          <span class="ctrl-lbl">&nbsp;</span>
+          <button class="btn btn-primary" id="btn-serie" onclick="gerarSerie()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>
+            Criar série
+          </button>
+        </div>
+      </div>
+
+      <div id="serie-tema-custom" style="display:none;margin-bottom:16px">
+        <span class="ctrl-lbl">Descreva o tema</span>
+        <input type="text" id="serie-tema-input" placeholder="Ex: Como usar suplementos de forma inteligente" style="width:100%;margin-top:6px">
+      </div>
+
+      <div id="serie-out">
+        <div class="empty">
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/></svg></div>
+          <h3>Nenhuma série ainda</h3>
+          <p>Escolha o tema e a duração. O arco narrativo completo é gerado semana a semana — clique em qualquer semana para expandir e criar o conteúdo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- IMAGENS -->
+    <section class="panel" id="panel-imagens">
+      <div class="eyebrow">Gerador de imagens · DALL-E 3</div>
+      <div class="sec-title">Prompts de imagem profissionais</div>
+      <p class="sec-desc">Descreva a cena, o mood ou o conceito. O Claude gera prompts profissionais prontos para Midjourney, DALL-E 3 e Adobe Firefly, calibrados com a identidade visual da sua marca.</p>
+
+      <div class="ctrl-row" style="flex-direction:column;align-items:stretch;gap:12px;margin-bottom:20px">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Temas rápidos</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="promptRapido('Prato saudável e colorido com proteína, vegetais e carboidrato, fotografia de comida profissional, luz natural, fundo branco clean, estilo editorial minimalista, sem texto')">Prato saudável</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="promptRapido('Pessoa fazendo exercício físico ao amanhecer, lifestyle fotografia, tons quentes, motivacional, sem texto, editorial')">Exercício</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="promptRapido('Ingredientes naturais e saudáveis organizados em flat lay, abacate, frutas, nozes, vegetais coloridos, fundo mármore branco, fotografia culinária profissional, sem texto')">Flat lay ingredientes</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="promptRapido('Preparação de marmita fitness saudável, meal prep organizado, potes de vidro, cores vibrantes, luz natural, fotografia de estilo de vida, sem texto')">Meal prep</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="promptRapido('Mulher jovem tomando smoothie verde saudável, estilo de vida saudável, luz natural, sorrindo, fotografia editorial limpa, sem texto')">Smoothie</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px" onclick="promptRapido('Academia, halteres e equipamentos fitness, iluminação dramática, sem pessoas, estilo editorial, tons escuros e dourados, sem texto')">Academia</button>
+          </div>
+        </div>
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Ou descreva sua imagem</span>
+          <textarea id="img-prompt" rows="3" placeholder="Ex: Prato de frango grelhado com salada colorida e batata-doce, fotografia de comida profissional, luz natural suave, fundo claro..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="ctrl-grp">
+            <span class="ctrl-lbl">Qualidade</span>
+            <select id="img-quality">
+              <option value="standard">Standard (mais rápido)</option>
+              <option value="hd">HD (mais detalhado)</option>
+            </select>
+          </div>
+          <div class="ctrl-grp">
+            <span class="ctrl-lbl">Quantidade</span>
+            <select id="img-n">
+              <option value="1">1 imagem</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-img" onclick="gerarImagem()" style="align-self:flex-end">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Gerar imagem
+          </button>
+        </div>
+      </div>
+
+      <div id="img-out">
+        <div class="empty">
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <h3>Nenhuma imagem ainda</h3>
+          <p>Escolha um tema rápido ou descreva o que quer. Cada imagem é gerada em 1024x1024px.</p>
+        </div>
+      </div>
+
+      <div id="img-historico" style="display:none;margin-top:24px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:12px">GERADAS NESSA SESSÃO</div>
+        <div id="img-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px"></div>
+      </div>
+    </section>
+
+    <!-- REELS -->
+    <section class="panel" id="panel-reels">
+      <div class="eyebrow">Roteiros de Reels</div>
+      <div class="sec-title">Fala por fala, pronto para gravar</div>
+      <p class="sec-desc">Roteiros de 30-45 segundos com gancho nos primeiros 3 segundos. Linguagem natural, na sua voz de ex-atleta. Foco em crescimento de seguidores.</p>
+
+      <div class="ctrl-row">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Objetivo do Reels</span>
+          <select id="reels-obj">
+            <option value="crescimento">Atrair novos seguidores</option>
+            <option value="autoridade">Construir autoridade</option>
+            <option value="identificacao">Gerar identificação</option>
+            <option value="captacao">Converter em paciente</option>
+          </select>
+        </div>
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Tema</span>
+          <select id="reels-tema">
+            <option value="churrasco">VOU PRO CHURRASCO, E AGORA?</option>
+            <option value="cerveja">CERVEJA ENGORDA?</option>
+            <option value="fimdesemana">FERREI A DIETA NO FIM DE SEMANA</option>
+            <option value="rodizio">COMO SAIR DO RODÍZIO SEM CULPA</option>
+            <option value="saojoao">TÔ DE DIETA E CHEGOU O SÃO JOÃO</option>
+            <option value="delivery">O QUE PEDIR NO IFOOD</option>
+            <option value="noite">COMER À NOITE ENGORDA?</option>
+            <option value="travou">MEU PESO TRAVOU, E AGORA?</option>
+            <option value="proteina">VOCÊ COME PROTEÍNA DE MENOS</option>
+            <option value="mounjaro">MOUNJARO NA VIDA REAL</option>
+            <option value="atleta">20 ANOS DE NATAÇÃO ME ENSINARAM ISSO</option>
+            <option value="consulta">O QUE ACONTECE NA PRIMEIRA CONSULTA</option>
+          </select>
+        </div>
+        <div class="ctrl-grp" style="justify-content:flex-end">
+          <span class="ctrl-lbl">&nbsp;</span>
+          <button class="btn btn-primary" id="btn-reels" onclick="gerarRoteiro()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Gerar roteiro
+          </button>
+        </div>
+      </div>
+
+      <div id="reels-out">
+        <div class="empty">
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+          <h3>Nenhum roteiro ainda</h3>
+          <p>Escolha o objetivo e o tema. O roteiro sai fala por fala, com indicações visuais e legenda pronta.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TENDÊNCIAS -->
+    <section class="panel" id="panel-tendencias">
+      <div class="eyebrow">Inteligência de mercado</div>
+      <div class="sec-title">O que está em alta agora</div>
+      <p class="sec-desc">Temas em alta em nutrição e wellness no Brasil, cruzados com o que performa melhor para o seu público. Atualizado sob demanda.</p>
+
+      <div class="ctrl-row">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Foco</span>
+          <select id="trend-foco">
+            <option value="geral">Vida real e alimentação</option>
+            <option value="saojoao">São João e época junina</option>
+            <option value="social">Álcool, churrasco e vida social</option>
+            <option value="glp1">Mounjaro e GLP-1</option>
+            <option value="esportiva">Treino e shape</option>
+            <option value="comportamento">Comportamento alimentar</option>
+          </select>
+        </div>
+        <div class="ctrl-grp" style="justify-content:flex-end">
+          <span class="ctrl-lbl">&nbsp;</span>
+          <button class="btn btn-primary" id="btn-trend" onclick="buscarTendencias()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 2 17"/><polyline points="17 6 23 6 23 12"/></svg>
+            Buscar tendências
+          </button>
+        </div>
+      </div>
+
+      <div id="trend-out">
+        <div class="empty">
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 2 17"/><polyline points="17 6 23 6 23 12"/></svg></div>
+          <h3>Nenhuma tendência ainda</h3>
+          <p>Clique em buscar para ver o que está em alta agora em nutrição e wellness no Brasil.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARROSSEL -->
+    <section class="panel" id="panel-carrossel">
+      <style>
+        .car2-wrap{display:grid;grid-template-columns:360px 1fr;gap:28px;min-height:600px}
+        @media(max-width:1000px){.car2-wrap{grid-template-columns:1fr}}
+        .car2-source-tabs{display:flex;gap:8px;margin-bottom:16px}
+        .car2-stab{padding:6px 16px;border-radius:20px;font-size:10px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:1px solid var(--line2);color:var(--cream-dim);background:transparent;transition:all .2s;font-weight:600}
+        .car2-stab.active{border-color:var(--gold-border);color:var(--gold);background:var(--gold-dim)}
+        .car2-source-block{display:none}.car2-source-block.active{display:block}
+        .car2-tema-pill{display:inline-block;padding:5px 13px;border-radius:20px;border:1px solid var(--line2);color:var(--cream-dim);font-size:11px;cursor:pointer;transition:all .15s;margin:0 4px 6px 0}
+        .car2-tema-pill:hover{border-color:var(--gold-border);color:var(--gold)}
+        .car2-slides-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+        .car2-slide-thumb{border-radius:8px;overflow:hidden;border:1px solid var(--line);cursor:pointer;transition:all .2s;position:relative}
+        .car2-slide-thumb:hover{border-color:var(--gold-border);transform:translateY(-2px)}
+        .car2-slide-thumb canvas{width:100%;display:block;aspect-ratio:1}
+        .car2-slide-num{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;font-family:monospace;letter-spacing:1px;color:rgba(255,255,255,.7);text-shadow:0 1px 3px rgba(0,0,0,.5)}
+        .car2-dl-btn{width:100%;padding:12px;border-radius:8px;font-family:Inter,sans-serif;font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;border:none;background:linear-gradient(135deg,var(--gold),#A67C2E);color:#09090B;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;margin-bottom:8px}
+        .car2-dl-btn:hover{opacity:.88}
+        .car2-ajuste-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:14px}
+        .estilo-selector{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+        .estilo-card{padding:12px 14px;border-radius:8px;border:1px solid var(--line2);cursor:pointer;transition:all .2s;text-align:center}
+        .estilo-card:hover{border-color:var(--gold-border)}
+        .estilo-card.sel{border-color:var(--gold);background:var(--gold-dim)}
+        .estilo-card-nome{font-size:11px;font-weight:600;color:var(--cream);margin-bottom:2px}
+        .estilo-card-desc{font-size:9px;color:var(--cream-dim);font-family:monospace;letter-spacing:.5px}
+        .paleta-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+        .paleta-dot{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+        .paleta-dot.sel{border-color:var(--gold);transform:scale(1.15)}
+      </style>
+
+      <div class="eyebrow">Gerador de Carrossel</div>
+      <div class="sec-title">Design editorial. Pronto para baixar.</div>
+      <p class="sec-desc">Conteúdo gerado pelo Fable 5, renderizado em Canvas 1080×1080 com design que não parece IA. Escolha a origem, o estilo e baixe tudo de uma vez.</p>
+
+      <div class="car2-wrap">
+        <!-- ESQUERDA: CONTROLES -->
+        <div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:10px">Origem do tema</div>
+          <div class="car2-source-tabs">
+            <button class="car2-stab active" onclick="car2Tab(this,'livre')">Tema livre</button>
+            <button class="car2-stab" onclick="car2Tab(this,'consultor')">Do Consultor</button>
+            <button class="car2-stab" onclick="car2Tab(this,'cal30')">30 dias</button>
+          </div>
+
+          <div class="car2-source-block active" id="car2-src-livre">
+            <textarea id="car2-tema" rows="3" placeholder="Ex: VOU PRO CHURRASCO HOJE, E AGORA?" style="width:100%;margin-bottom:10px"></textarea>
+            <div style="font-size:10px;color:var(--cream-dim);margin-bottom:8px;letter-spacing:.5px">Temas rápidos</div>
+            <div id="car2-pills"></div>
+          </div>
+
+          <div class="car2-source-block" id="car2-src-consultor">
+            <div id="car2-gancho-consultor" style="padding:12px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--line);font-size:12.5px;color:var(--cream-mid);margin-bottom:10px;min-height:60px">Gere um briefing no Consultor primeiro para importar o gancho do dia.</div>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:11px" onclick="car2ImportarConsultor()">Importar gancho do Consultor</button>
+          </div>
+
+          <div class="car2-source-block" id="car2-src-cal30">
+            <select id="car2-cal30-sel" style="width:100%;margin-bottom:10px">
+              <option value="">Selecione um dia do calendário</option>
+            </select>
+            <div id="car2-cal30-preview" style="font-size:12px;color:var(--cream-dim);padding:8px;font-style:italic"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:10px">Estilo visual</div>
+          <div class="estilo-selector" id="car2-estilos" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="estilo-card sel" data-estilo="revista" onclick="car2SelecionarEstilo(this)">
+              <div class="estilo-card-nome">Revista</div>
+              <div class="estilo-card-desc">Papel · tipografia editorial</div>
+            </div>
+            <div class="estilo-card" data-estilo="cartaz" onclick="car2SelecionarEstilo(this)">
+              <div class="estilo-card-nome">Cartaz</div>
+              <div class="estilo-card-desc">Cor sólida · impacto</div>
+            </div>
+            <div class="estilo-card" data-estilo="noturno" onclick="car2SelecionarEstilo(this)">
+              <div class="estilo-card-nome">Noturno</div>
+              <div class="estilo-card-desc">Preto · elegância</div>
+            </div>
+          </div>
+
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:8px">Cor de destaque</div>
+          <div class="paleta-row" id="car2-paleta"></div>
+
+          <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px">
+            <div class="ctrl-grp" style="flex:1">
+              <span class="ctrl-lbl">Número de slides</span>
+              <select id="car2-nslides">
+                <option value="7">7 slides</option>
+                <option value="8" selected>8 slides</option>
+                <option value="9">9 slides</option>
+                <option value="10">10 slides</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ctrl-grp" style="margin-bottom:12px">
+            <span class="ctrl-lbl">Fotos (capa + slides, opcional)</span>
+            <input type="file" id="car2-foto" accept="image/*" multiple style="padding:7px 10px;font-size:11px;cursor:pointer;width:100%">
+            <div id="car2-fotos-prev" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-car2" onclick="car2Gerar()" style="width:100%;justify-content:center;margin-bottom:4px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8"/><path d="M12 3v4"/></svg>
+            Gerar carrossel com Fable 5
+          </button>
+          <div style="font-size:9px;color:var(--cream-dim);text-align:center;font-family:monospace;letter-spacing:.5px">Conteúdo: Fable 5 · Design: Canvas 1080×1080</div>
+        </div>
+
+        <!-- DIREITA: PREVIEW + DOWNLOAD -->
+        <div>
+          <div id="car2-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;gap:14px">
+            <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8"/><path d="M12 3v4"/></svg></div>
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--cream-mid)">Aguardando geração</h3>
+            <p style="font-size:12.5px;color:var(--cream-dim);max-width:280px;line-height:1.65">Configure o tema e o estilo ao lado. Os slides aparecem aqui prontos para baixar.</p>
+          </div>
+          <div id="car2-output" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+              <span style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold)" id="car2-output-label">SLIDES GERADOS</span>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px" onclick="car2CopiarLegenda()">Copiar legenda</button>
+                <button class="car2-dl-btn" style="width:auto;padding:9px 18px;margin:0" onclick="car2BaixarTodos()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Baixar todos os slides
+                </button>
+              </div>
+            </div>
+            <div class="car2-slides-grid" id="car2-slides-grid"></div>
+            <div class="resultado-wrap" style="margin-top:4px">
+              <div class="resultado-head"><span class="resultado-label">LEGENDA PRONTA</span><button class="btn btn-ghost" style="font-size:11px;padding:7px 14px" onclick="car2CopiarLegenda()">Copiar</button></div>
+              <div class="resultado-body" id="car2-legenda"></div>
+            </div>
+            <div class="car2-ajuste-wrap">
+              <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Ajuste rápido de design</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                <button class="btn btn-ghost" style="font-size:10px;padding:5px 12px" onclick="car2AjusteRapido('revista')">Revista papel</button>
+                <button class="btn btn-ghost" style="font-size:10px;padding:5px 12px" onclick="car2AjusteRapido('cartaz')">Cartaz cor</button>
+                <button class="btn btn-ghost" style="font-size:10px;padding:5px 12px" onclick="car2AjusteRapido('noturno')">Noturno preto</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALENDÁRIO -->
+    <section class="panel" id="panel-calendario">
+      <div class="eyebrow">Planejamento semanal</div>
+      <div class="sec-title">Sua semana de conteúdo</div>
+      <p class="sec-desc">Sete dias planejados com tema, formato e objetivo estratégico — equilibrando autoridade, conexão, prova social e captação.</p>
+      <div class="ctrl-row">
+        <div class="ctrl-grp">
+          <span class="ctrl-lbl">Foco da semana</span>
+          <select id="cal-foco">
+            <option value="equilibrado">Semana equilibrada</option>
+            <option value="captacao">Captação de pacientes</option>
+            <option value="autoridade">Construção de autoridade</option>
+            <option value="engajamento">Máximo engajamento</option>
+          </select>
+        </div>
+        <div class="ctrl-grp" style="justify-content:flex-end">
+          <span class="ctrl-lbl">&nbsp;</span>
+          <button class="btn btn-primary" id="btn-cal" onclick="gerarCalendario()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Planejar semana
+          </button>
+        </div>
+      </div>
+      <div id="cal-out">
+        <div class="empty">
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <h3>Semana em branco</h3>
+          <p>Escolha o foco e gere o planejamento de domingo a sábado com tema, formato e objetivo de cada post.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 30 DIAS -->
+    <section class="panel" id="panel-trinta">
+      <div class="eyebrow">Calendário editorial</div>
+      <div class="sec-title">30 dias de conteúdo estratégico</div>
+      <p class="sec-desc">Reels, carrosséis, posts e stories planejados para converter seguidores em pacientes. Clique em qualquer dia para escrever o conteúdo completo.</p>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="cal30-filters">
+        <button class="btn btn-ghost" style="font-size:11px;padding:6px 14px;border-radius:20px" data-f="todos" onclick="filtrar30(this)" class="f30-btn">Todos</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:6px 14px;border-radius:20px;background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.3);color:#C9A84C" data-f="CARROSSEL" onclick="filtrar30(this)">Carrossel</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:6px 14px;border-radius:20px" data-f="REELS" onclick="filtrar30(this)">Reels</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:6px 14px;border-radius:20px" data-f="POST" onclick="filtrar30(this)">Post</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:6px 14px;border-radius:20px" data-f="STORIES" onclick="filtrar30(this)">Stories</button>
+      </div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--cream-dim)"><div style="width:8px;height:8px;border-radius:50%;background:var(--blue)"></div>Autoridade</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--cream-dim)"><div style="width:8px;height:8px;border-radius:50%;background:var(--green)"></div>Identificação</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--cream-dim)"><div style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>Prova social</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--cream-dim)"><div style="width:8px;height:8px;border-radius:50%;background:var(--red)"></div>Captação</div>
+      </div>
+
+      <div id="grid30" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px"></div>
+    </section>
+
+    <!-- ESTRATÉGIA -->
+    <section class="panel" id="panel-estrategia">
+      <div class="eyebrow">Briefing estratégico</div>
+      <div class="sec-title">Como seu conteúdo funciona</div>
+      <p class="sec-desc">Os 4 pilares que estruturam toda a comunicação. Cada conteúdo gerado respeita essa proporção para construir autoridade e converter seguidores em pacientes.</p>
+      <div class="pilar-grid">
+        <div class="pilar-card"><div class="pilar-pct" style="color:var(--blue)">40%</div><div class="pilar-nm" style="color:var(--blue)">Autoridade</div><div class="pilar-desc">Mitos, ciência aplicada, Mounjaro/GLP-1, casos clínicos anonimizados, nutrição esportiva. Você como especialista acessível.</div><div class="pilar-bar" style="background:var(--blue);width:40%"></div></div>
+        <div class="pilar-card"><div class="pilar-pct" style="color:var(--green)">30%</div><div class="pilar-nm" style="color:var(--green)">Identificação</div><div class="pilar-desc">Sua história de atleta, bastidores da consulta, erros reais de pacientes, mudança de comportamento. O seguidor se vê em você.</div><div class="pilar-bar" style="background:var(--green);width:30%"></div></div>
+        <div class="pilar-card"><div class="pilar-pct" style="color:var(--amber)">20%</div><div class="pilar-nm" style="color:var(--amber)">Prova social</div><div class="pilar-desc">Transformações, depoimentos, resultados reais anonimizados. Prova de que o método funciona na prática clínica.</div><div class="pilar-bar" style="background:var(--amber);width:20%"></div></div>
+        <div class="pilar-card"><div class="pilar-pct" style="color:var(--red)">10%</div><div class="pilar-nm" style="color:var(--red)">Captação</div><div class="pilar-desc">CTAs diretos para agendamento. Sem urgência artificial. O seguidor já foi educado e está pronto para dar o próximo passo.</div><div class="pilar-bar" style="background:var(--red);width:10%"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="eyebrow" style="margin-bottom:14px">Regras de voz · DNA @thiagobarros</div>
+      <div class="regra-card"><div class="regra-dot"></div><div><div class="regra-tit">Situação antes da teoria</div><div class="regra-desc">Todo conteúdo abre com a vida acontecendo: "VOU PRO CHURRASCO, E AGORA?". O gancho é o dilema que a pessoa vive hoje, não a matéria que ela deveria estudar.</div></div></div>
+      <div class="regra-card"><div class="regra-dot"></div><div><div class="regra-tit">Permissão, nunca proibição</div><div class="regra-desc">A mensagem central é sempre: dá pra viver a vida E ter resultado. Um churrasco não define nada. O que define é o que você faz nos outros dias.</div></div></div>
+      <div class="regra-card"><div class="regra-dot"></div><div><div class="regra-tit">Dicas numeradas e aplicáveis</div><div class="regra-desc">1, 2, 3, 4. Coisas que a pessoa usa hoje à noite no rodízio, com exemplos de comida brasileira de verdade. Nada de conceito de aula.</div></div></div>
+      <div class="regra-card"><div class="regra-dot"></div><div><div class="regra-tit">Shape e vida social juntos</div><div class="regra-desc">O público quer corpo bom sem abrir mão de cerveja, churrasco e viagem. Esse desejo é legítimo e nunca é julgado.</div></div></div>
+      <div class="regra-card"><div class="regra-dot"></div><div><div class="regra-tit">História de atleta como autoridade prática</div><div class="regra-desc">20 anos de natação e seleção brasileira entram para dar credibilidade ao conselho, nunca para se gabar. Sempre com a ponte para a vida de quem não é atleta.</div></div></div>
+      <div class="regra-card"><div class="regra-dot"></div><div><div class="regra-tit">Sem clichês de coach, sem terrorismo</div><div class="regra-desc">Proibido: "destrave", "mindset", "próximo nível". Nenhum alimento é vilão. Culpa não existe no vocabulário. Frase curta, tom de amigo que entende do assunto.</div></div></div>
+    </section>
+
+  </div>
+</div>
+
+<nav class="mob-nav">
+  <button class="mob-btn active" data-panel="consultor" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>Consultor</button>
+  <button class="mob-btn" data-panel="motor" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 8v4l3 3"/></svg>Motor</button>
+  <button class="mob-btn" data-panel="pautas" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Pautas</button>
+  <button class="mob-btn" data-panel="ganchos" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Ganchos</button>
+  <button class="mob-btn" data-panel="responder" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>DMs</button>
+  <button class="mob-btn" data-panel="escrever" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Escrever</button>
+  <button class="mob-btn" data-panel="serie" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Série</button>
+  <button class="mob-btn" data-panel="imagens" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Imagens</button>
+  <button class="mob-btn" data-panel="reels" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="5 3 19 12 5 21 5 3"/></svg>Reels</button>
+  <button class="mob-btn" data-panel="tendencias" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 2 17"/><polyline points="17 6 23 6 23 12"/></svg>Trends</button>
+  <button class="mob-btn" data-panel="carrossel" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8"/><path d="M12 3v4"/></svg>Carrossel</button>
+  <button class="mob-btn" data-panel="calendario" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendário</button>
+  <button class="mob-btn" data-panel="trinta" onclick="go(this)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg>30 dias</button>
+</nav>
+
+<script>
+const EPOCA=`CONTEXTO DE EPOCA: junho de 2026, Brasil. Sao Joao e festas juninas a todo vapor, principalmente no Nordeste (Andre e de Fortaleza, capital do Sao Joao e do churrasco de domingo). Comidas tipicas em todo canto: canjica, pamonha, milho cozido, bolo de milho, pe de moleque. Ferias de julho chegando, muita gente viajando. Use esse contexto quando deixar o conteudo mais atual, sem forcar.`;
+
+const PERFIL=`Voce escreve conteudo de Instagram para o nutricionista Andre Aragao. A referencia de estilo OBRIGATORIA e o @thiagobarros, nutricionista com 280 mil seguidores que domina o conteudo de nutricao no Brasil.
+
+O DNA @thiagobarros. Siga a risca, sem excecao:
+
+1. SITUACAO REAL primeiro, teoria depois. Ele nunca abre com conceito. Abre com a vida acontecendo agora: "TO DE DIETA E A PASCOA CHEGOU, O QUE FAZER?", "VOU PRO CHURRASCO HOJE, E AGORA?", "BEBI O FIM DE SEMANA INTEIRO, FERROU?". O gancho e o dilema que a pessoa esta vivendo hoje, nao a materia que ela deveria estudar.
+
+2. TITULO EM CAIXA ALTA, em formato de pergunta ou dilema falado. Curto, do jeito exato que a pessoa pensa quando abre a geladeira ou recebe o convite do churrasco.
+
+3. PERMISSAO, nunca proibicao. Mensagem central de todo conteudo: da pra viver a vida E ter resultado. Frase modelo dele: "Nao serao um ou dois dias fora da curva que vao acabar com seu shape. O que define seu resultado e o que voce faz em todos os outros dias."
+
+4. DICAS NUMERADAS e aplicaveis hoje. 1, 2, 3, 4. Coisas que a pessoa usa hoje a noite no rodizio, nao conceitos de aula.
+
+5. SHAPE E VIDA SOCIAL no mesmo conteudo. O publico quer corpo bom SEM abrir mao de cerveja, churrasco, festa, doce e viagem. Ele trata esse desejo como legitimo e normal, nunca julga.
+
+6. ZERO terrorismo nutricional. Nenhum alimento e vilao. Culpa nao existe no vocabulario. "Coma com calma, sinta o sabor, sem pressa. Nao deixe de viver esses momentos."
+
+7. TOM DE AMIGO QUE ENTENDE DO ASSUNTO. Nao e professor, nao e coach. Linguagem de conversa: "relaxa", "presta atencao nisso", "ferrou?", "vai por mim". Frase curta. Uma ideia por vez.
+
+8. FECHAMENTO COM VERDADE SIMPLES. Todo conteudo termina com uma frase que a pessoa quer salvar ou mandar pro amigo. Tipo: "O churrasco de domingo nunca foi o problema. O problema e o que voce faz de segunda a sabado."
+
+SOBRE ANDRE ARAGAO:
+- Nutricionista clinico e esportivo (CRN 11-16678), Fortaleza-CE, atende presencial e online em todo o Brasil
+- Ex-atleta de alto rendimento: 20 anos de natacao, selecao brasileira, campeao sul-americano
+- Especialidades: emagrecimento, composicao corporal, Mounjaro e GLP-1, nutricao esportiva
+- Mais de 2.000 pacientes atendidos
+- Diferencial: viveu na pele a disciplina de atleta E entende que o paciente comum tem happy hour, filho, trabalho e preguica. A historia de atleta entra pra dar autoridade pratica, nunca pra se gabar.
+
+PUBLICO: adultos de 25-35 anos que treinam ou querem comecar. Querem emagrecer ou definir SEM virar eremita. Vida social ativa: happy hour, churrasco de domingo, rodizio, viagem. Ja tentaram dieta restritiva e quebraram a cara. Cansados de nutri que proibe tudo.
+
+REGRAS FIXAS DE ESCRITA:
+- NUNCA use travessao. So ponto ou virgula
+- Frase curta. Ideia clara. Proximo ponto
+- Maximo 3 hashtags especificas
+- CTA natural: salvar, mandar pro amigo do churrasco, comentar. Agendar so quando o conteudo pedir
+- Proibido cliche de coach: "destrave", "mindset", "proximo nivel", "venca seus limites"
+- Numeros concretos sempre que possivel: calorias, gramas, exemplos com nome de comida brasileira de verdade
+
+EXEMPLOS DO TOM CERTO (modele exatamente assim):
+
+"VOU PRO CHURRASCO HOJE, E AGORA? Relaxa, ninguem engorda por causa de UM churrasco. 1. Nao chegue morrendo de fome, coma uma fonte de proteina antes de sair. 2. Comece pela carne, deixe pao de alho e farofa como coadjuvantes. 3. Alterne agua e cerveja, seu shape e sua ressaca agradecem. 4. Segunda-feira e so mais um dia, nao um recomeco. O churrasco de domingo nunca foi o problema. O problema e o que voce faz de segunda a sabado."
+
+"CERVEJA ENGORDA? A cerveja tem caloria, como qualquer coisa que voce consome. O problema nao e a cerveja do sabado. E o combo: cerveja + petisco + delivery de madrugada + domingo inteiro no sofa. Da pra beber e ter resultado? Da. Mas tem estrategia. Arrasta que eu te mostro."
+
+${EPOCA}`;
+
+async function api(prompt,max=2500,systemOverride){
+  const sys=systemOverride||PERFIL;
+  let r;
+  try{
+    r=await fetch("https://nutriandre-proxy.vercel.app/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:max,system:sys,messages:[{role:"user",content:prompt}]})
+    });
+  }catch(e){throw new Error("Sem conexao com o servidor. Verifique sua internet e tente novamente.");}
+  if(!r.ok){
+    let msg="Erro do servidor ("+r.status+")";
+    try{const d=await r.json();msg=d.error?.message||d.message||msg;}catch(_){}
+    throw new Error(msg);
+  }
+  let d;
+  try{d=await r.json();}catch(e){throw new Error("Resposta invalida do servidor. Tente novamente.");}
+  if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+  const texto=d.content?.find(b=>b.type==="text")?.text;
+  if(!texto)throw new Error("O modelo nao retornou texto. Tente novamente.");
+  return texto;
+}
+
+function go(btn){
+  document.querySelectorAll('.nav-item,.mob-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.mob-btn').forEach(b=>{if(b.dataset.panel===btn.dataset.panel)b.classList.add('active');});
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+  document.querySelector('.workspace').scrollTo(0,0);
+}
+
+function load(id,on,txt){
+  const b=document.getElementById(id);b.disabled=on;
+  if(on){b.dataset.o=b.innerHTML;b.innerHTML=`<span class="spinner"></span> ${txt||'Gerando...'}`;}
+  else b.innerHTML=b.dataset.o;
+}
+
+const PILAR_CLS={autoridade:'b-aut',identificacao:'b-ide',prova:'b-pro',venda:'b-ven'};
+const PILAR_NM={autoridade:'Autoridade',identificacao:'Identificação',prova:'Prova social',venda:'Captação'};
+
+async function gerarPautas(){
+  const tema=document.getElementById('pauta-tema').value;
+  const pilar=document.getElementById('pauta-pilar').value;
+  const out=document.getElementById('pautas-out');
+  load('btn-pautas',true,'Pensando...');
+  out.innerHTML='';
+  const temas={mix:"um mix de situacoes da vida real no estilo @thiagobarros: churrasco, cerveja, rodizio, delivery, Sao Joao, fim de semana, viagem, treino. Sempre com a pegada shape sem abrir mao da vida social",churrasco:"churrasco e domingo em familia: como comer bem sem sabotar o resultado, ordem dos alimentos, o que escolher na mesa, equilibrio no resto da semana",alcool:"alcool e shape: cerveja, vinho, drinks, happy hour. Como encaixar sem travar o resultado, estrategias praticas antes, durante e depois de beber",rodizio:"rodizio, buffet, japones, pizzaria: como montar o prato, em que ordem comer, como aproveitar de verdade e sair sem culpa",saojoao:"Sao Joao e festas juninas: canjica, pamonha, bolo de milho, milho cozido, pe de moleque. Como aproveitar a epoca mais gostosa do Nordeste sem jogar o resultado fora",festa:"festas, aniversarios, casamentos, mesa de doces: como participar de tudo e continuar evoluindo",viagem:"viagem e ferias: cafe da manha de hotel, comida de aeroporto, beach club, como voltar da viagem sem drama nem recomeco",semtempo:"rotina corrida, sem tempo de cozinhar: refeicoes rapidas, atalhos inteligentes no mercado, opcoes prontas que funcionam",delivery:"delivery e comer fora todo dia: melhores escolhas no iFood, como pedir certo em cada tipo de restaurante, combos que cabem no plano",fimdesemana:"o suposto fim de semana que estraga a dieta: matematica calorica semanal, por que segunda nao e recomeco, equilibrio real",noite:"comer a noite, beliscar depois do jantar, fome noturna, carboidrato a noite: o que a ciencia diz e o que fazer na pratica",proteina:"proteina na pratica: quanto comer, fontes baratas brasileiras, como bater a meta sem depender de suplemento caro",deficit:"deficit calorico sem sofrimento: emagrecer comendo o que gosta, volume alimentar, saciedade, trocas inteligentes",travou:"peso travou: plateau, retencao de liquido, o que fazer quando a balanca para de descer e a motivacao vai junto",barriga:"gordura abdominal: o que funciona de verdade, o que e mito, por que abdominal nao queima barriga localizada",massa:"ganho de massa muscular: comer para crescer, superavit inteligente, erros que travam a evolucao no espelho",mounjaro:"Mounjaro, tirzepatida e GLP-1 na vida real: o que muda na alimentacao, como proteger a massa magra, efeitos colaterais alimentares, vida social durante o uso",mitos:"mitos que todo mundo ainda acredita: detox, comer de 3 em 3 horas, carboidrato a noite engorda, gluten, suco verde",ansiedade:"comer por ansiedade e emocional: ciclo restricao e compulsao, como quebrar, estrategias reais sem romantizar"};
+  const pilares={auto:"distribuindo naturalmente entre os 4 pilares estratégicos",autoridade:"focando em autoridade e educação científica acessível",identificacao:"focando em identificação, história pessoal e conexão emocional",prova:"focando em prova social e resultados concretos",venda:"focando em captação e convite natural para agendamento"};
+  try{
+    const raw=await api(`Gere exatamente 10 pautas de Instagram sobre ${temas[tema]}, ${pilares[pilar]}.
+
+REGRA DE OURO: cada titulo deve seguir o padrao @thiagobarros. Situacao real em CAIXA ALTA, formato de pergunta ou dilema falado. Exemplos do padrao: "VOU PRO CHURRASCO HOJE, E AGORA?", "TO DE DIETA E CHEGOU O SAO JOAO", "CERVEJA ENGORDA?", "FERREI TUDO NO FIM DE SEMANA". Nada de titulo generico de blog.
+
+Responda APENAS com JSON válido sem markdown:
+{"pautas":[{"titulo":"TITULO EM CAIXA ALTA estilo dilema","formato":"CARROSSEL|REELS|POST|STORIES","pilar":"autoridade|identificacao|prova|venda","angulo":"4-6 palavras","gancho":"primeira frase exata na voz do André que para o scroll","porque":"por que converte para o público dele em 1 frase"}]}`,3000);
+    const data=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    out.innerHTML=`<div class="pautas-grid">${data.pautas.map((p,i)=>`<div class="pauta-card" onclick="usarPauta(${i})" data-t="${encodeURIComponent(p.titulo)}" data-f="${p.formato.toLowerCase()}" data-p="${p.pilar}"><div class="pauta-head"><span class="badge b-fmt">${p.formato}</span><span class="badge ${PILAR_CLS[p.pilar]||'b-ang'}">${PILAR_NM[p.pilar]||p.pilar}</span><span class="badge b-ang">${p.angulo}</span></div><div class="pauta-titulo">${p.titulo}</div><div class="pauta-gancho">"${p.gancho}"</div><div class="pauta-porque">${p.porque}</div><div class="pauta-cta"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Escrever este conteúdo</div></div>`).join('')}</div>`;
+  }catch(e){out.innerHTML=`<div class="erro-msg">Não consegui gerar. Verifique a conexão e tente novamente.<br><small style="opacity:.6">${e.message||''}</small></div>`;}
+  load('btn-pautas',false);
+}
+
+function usarPauta(i){
+  const c=document.querySelectorAll('.pauta-card')[i];
+  document.getElementById('escrever-input').value=decodeURIComponent(c.dataset.t);
+  const fm={carrossel:'carrossel',reels:'reels',post:'legenda',stories:'stories'};
+  document.getElementById('escrever-formato').value=fm[c.dataset.f]||'carrossel';
+  document.getElementById('escrever-pilar').value=c.dataset.p||'autoridade';
+  document.querySelector('[data-panel="escrever"]').click();
+  escreverConteudo();
+}
+
+async function escreverConteudo(){
+  const ideia=document.getElementById('escrever-input').value.trim();
+  const fmt=document.getElementById('escrever-formato').value;
+  const pilar=document.getElementById('escrever-pilar').value;
+  const out=document.getElementById('escrever-out');
+  if(!ideia){out.innerHTML='<div class="erro-msg">Descreva a ideia antes de escrever.</div>';return;}
+  load('btn-escrever',true,'Escrevendo...');out.innerHTML='';
+  const fmts={
+    carrossel:`um carrossel de 8-10 slides:\n\nSLIDE 1 (CAPA): [gancho EM CAIXA ALTA no padrão @thiagobarros, situação ou dilema, máximo 8 palavras]\nSLIDE 2: [valida a situação da pessoa, sem julgar]\nSLIDE 3 a 7: [dicas numeradas e práticas, 1 por slide, máx 3 linhas, com exemplos de comida brasileira de verdade]\nSLIDE 8 (CONCLUSÃO): [a verdade simples que a pessoa quer salvar]\nSLIDE 9 (CTA): [salvar ou mandar pro amigo]\n\nLEGENDA DO POST:\n[legenda completa pronta para publicar]\n\nHASHTAGS: [3 específicas]`,
+    legenda:`uma legenda completa:\n\nGANCHO: [primeira linha que para o scroll]\n\nDESENVOLVIMENTO: [3-4 parágrafos curtos]\n\nCTA: [convite natural]\n\nHASHTAGS: [3-5 específicas]`,
+    reels:`um roteiro de Reels 30-45s:\n\nHOOK (0-3s): [fala ou texto que para o scroll]\nDESENVOLVIMENTO (3-35s): [cenas e falas, visual entre colchetes]\nFECHAMENTO (35-45s): [conclusão e CTA]\n\nLEGENDA: [pronta para publicar]\n\nHASHTAGS: [3-5]`,
+    stories:`5-7 stories:\n\nSTORY 1: [gancho]\nSTORY 2-5: [desenvolvimento, indicar enquetes]\nSTORY FINAL: [CTA com link ou DM]\n\nLEGENDA (caso vire post): [versão condensada]`
+  };
+  const pis={autoridade:"AUTORIDADE: demonstra expertise técnica de forma acessível. André fala como especialista baseado em ciência.",identificacao:"IDENTIFICAÇÃO: André se expõe, conta história real ou bastidor. O seguidor se vê nele ou no paciente.",prova:"PROVA SOCIAL: mostra resultado real ou relato anonimizado. Concreto, crível, sem exagero.",venda:"CAPTAÇÃO: CTA direto mas natural. Convida para resolver um problema específico, não vende consulta."};
+  try{
+    const texto=await api(`Escreva ${fmts[fmt]} sobre: "${ideia}".\n\nPilar: ${pis[pilar]}\n\nAo final, inclua 1 linha: OBJETIVO ESTRATÉGICO: [por que este conteúdo converte para o público do André]\n\nTexto completo e pronto para publicar, na voz exata do André Aragão.`,3000);
+    out.innerHTML=`<div class="resultado-wrap"><div class="resultado-head"><span class="resultado-label">${fmt.toUpperCase()} · ${PILAR_NM[pilar]||pilar}</span><div style="display:flex;gap:8px"><button class="btn btn-ghost" style="font-size:11px;padding:7px 14px" onclick="copiar(this)">Copiar</button></div></div><div class="resultado-body">${esc(texto)}</div><div class="resultado-foot"><button class="btn btn-ghost" style="font-size:11px" onclick="escreverConteudo()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Reescrever</button></div></div>`;
+  }catch(e){out.innerHTML=`<div class="erro-msg">Erro ao escrever. Tente novamente.<br><small style="opacity:.6">${e.message||''}</small></div>`;}
+  load('btn-escrever',false);
+}
+
+function copiar(btn){
+  navigator.clipboard.writeText(btn.closest('.resultado-wrap').querySelector('.resultado-body').innerText).then(()=>{const o=btn.textContent;btn.textContent='Copiado ✓';setTimeout(()=>btn.textContent=o,2000);});
+}
+
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function gerarCalendario(){
+  const foco=document.getElementById('cal-foco').value;
+  const out=document.getElementById('cal-out');
+  load('btn-cal',true,'Planejando...');out.innerHTML='';
+  const focos={equilibrado:"semana equilibrada: 2-3 autoridade, 2 identificação, 1 prova social, 1 captação",captacao:"captar pacientes: mais prova social e captação, base de autoridade para credibilidade",autoridade:"construção de autoridade: conteúdo técnico acessível, mitos, ciência aplicada",engajamento:"maximizar engajamento: perguntas, enquetes, conteúdo que gera comentários e salvamentos"};
+  try{
+    const raw=await api(`Planeje semana de Instagram domingo a sábado para André Aragão. Foco: ${focos[foco]}.\nJSON válido apenas:\n{"dias":[{"dia":"Domingo","titulo":"título do post","descricao":"1-2 frases do conteúdo","formato":"Carrossel|Reels|Post|Stories|Descanso","pilar":"autoridade|identificacao|prova|venda|descanso","objetivo":"resultado estratégico em 1 frase"}]}`,2000);
+    const data=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const cp={autoridade:'var(--blue)',identificacao:'var(--green)',prova:'var(--amber)',venda:'var(--red)',descanso:'var(--cream-dim)'};
+    out.innerHTML=`<div class="cal-grid">${data.dias.map(d=>`<div class="cal-item"><div><div class="cal-dia">${d.dia}</div><div style="margin-top:6px;width:7px;height:7px;border-radius:50%;background:${cp[d.pilar]||'var(--cream-dim)'}"></div></div><div><div class="cal-tit">${d.titulo}</div><div class="cal-desc">${d.descricao}</div><div class="cal-desc" style="margin-top:3px;font-style:italic;font-size:11px">${d.objetivo||''}</div></div><span class="cal-fmt">${d.formato}</span></div>`).join('')}</div><div style="margin-top:16px;display:flex;gap:16px;flex-wrap:wrap">${[['var(--blue)','Autoridade'],['var(--green)','Identificação'],['var(--amber)','Prova social'],['var(--red)','Captação']].map(v=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--cream-dim)"><div style="width:7px;height:7px;border-radius:50%;background:${v[0]}"></div>${v[1]}</div>`).join('')}</div>`;
+  }catch(e){out.innerHTML=`<div class="erro-msg">Erro ao planejar. Tente novamente.<br><small style="opacity:.6">${e.message||''}</small></div>`;}
+  load('btn-cal',false);
+}
+
+const DIAS30=[
+  {d:1,fmt:"CARROSSEL",pilar:"aut",titulo:"VOU PRO CHURRASCO HOJE, E AGORA? O passo a passo",cta:"Salva pra abrir no próximo churrasco"},
+  {d:2,fmt:"REELS",pilar:"ide",titulo:"20 anos de natação me ensinaram isso sobre constância",cta:"Comenta: você sabia que fui da seleção?"},
+  {d:3,fmt:"CARROSSEL",pilar:"aut",titulo:"CERVEJA ENGORDA? A matemática que ninguém te mostrou",cta:"Manda pro amigo do happy hour"},
+  {d:4,fmt:"STORIES",pilar:"pro",titulo:"Paciente perdeu 8kg indo a TODOS os churrascos de domingo",cta:"Arrasta pra ver a estratégia"},
+  {d:5,fmt:"REELS",pilar:"aut",titulo:"O QUE PEDIR NO IFOOD quando bate a preguiça",cta:"Salva pra próxima preguiça"},
+  {d:6,fmt:"CARROSSEL",pilar:"aut",titulo:"TÔ DE DIETA E CHEGOU O SÃO JOÃO. Canjica pode?",cta:"Salva e aproveita o arraiá em paz"},
+  {d:7,fmt:"POST",pilar:"ven",titulo:"Você não precisa escolher entre shape e vida social. Precisa de estratégia",cta:"Link na bio pra agendar"},
+  {d:8,fmt:"CARROSSEL",pilar:"aut",titulo:"MOUNJARO: o que acontece nas primeiras 4 semanas na vida real",cta:"Salva se está em uso ou pensando"},
+  {d:9,fmt:"REELS",pilar:"ide",titulo:"FERREI A DIETA NO FIM DE SEMANA. O que eu faria na segunda",cta:"Comenta se isso já foi você"},
+  {d:10,fmt:"STORIES",pilar:"pro",titulo:"Print de paciente: primeira vez que emagreço sem desistir",cta:"Responde: qual sua maior dificuldade?"},
+  {d:11,fmt:"CARROSSEL",pilar:"aut",titulo:"RODÍZIO DE JAPONÊS: como sair satisfeito e sem culpa",cta:"Salva pro próximo rodízio"},
+  {d:12,fmt:"POST",pilar:"ide",titulo:"O dia que entendi que dieta de atleta não serve pra vida normal",cta:"Comenta: você já tentou dieta de atleta?"},
+  {d:13,fmt:"REELS",pilar:"aut",titulo:"COMER À NOITE ENGORDA? Respondendo de uma vez",cta:"Manda pra quem janta às 22h"},
+  {d:14,fmt:"STORIES",pilar:"ven",titulo:"Atendo online pra todo o Brasil. Como funciona na prática",cta:"Arrasta pra agendar"},
+  {d:15,fmt:"CARROSSEL",pilar:"aut",titulo:"VOCÊ COME PROTEÍNA DE MENOS. 7 jeitos baratos de resolver",cta:"Salva a lista do mercado"},
+  {d:16,fmt:"REELS",pilar:"ide",titulo:"Treinava 6h por dia. E mesmo assim cometia esse erro",cta:"Comenta: qual seu erro pós-treino?"},
+  {d:17,fmt:"POST",pilar:"aut",titulo:"Mounjaro sem acompanhamento: por que você perde músculo junto",cta:"Salva e mostra pro seu médico"},
+  {d:18,fmt:"CARROSSEL",pilar:"aut",titulo:"GORDURA ABDOMINAL: o que funciona e o que é mito",cta:"Salva antes de comprar chá detox"},
+  {d:19,fmt:"STORIES",pilar:"ide",titulo:"Meu dia de alimentação REAL, incluindo o que não é perfeito",cta:"Responde: você comeria assim?"},
+  {d:20,fmt:"REELS",pilar:"pro",titulo:"Ela tentou TUDO por 5 anos. O que mudou em 3 meses",cta:"Comenta se você se identifica"},
+  {d:21,fmt:"CARROSSEL",pilar:"aut",titulo:"FÉRIAS CHEGANDO: o guia pra viajar e voltar sem drama",cta:"Salva pra julho"},
+  {d:22,fmt:"POST",pilar:"ide",titulo:"O que a piscina às 5h da manhã me ensinou sobre resultado",cta:"Comenta qual frase te pegou"},
+  {d:23,fmt:"REELS",pilar:"ven",titulo:"3 sinais de que você precisa de um nutri, não de mais uma dieta",cta:"Link na bio se marcou 2 ou mais"},
+  {d:24,fmt:"STORIES",pilar:"aut",titulo:"PAMONHA OU CANJICA? Comparando as comidas de São João",cta:"Vota na enquete"},
+  {d:25,fmt:"CARROSSEL",pilar:"pro",titulo:"12kg a menos SEM cortar a cerveja do fim de semana: caso real",cta:"Salva pra lembrar que dá"},
+  {d:26,fmt:"POST",pilar:"ide",titulo:"Eu não prometo resultado rápido. E é por isso que meus pacientes mantêm",cta:"Comenta: promessa ou processo?"},
+  {d:27,fmt:"REELS",pilar:"aut",titulo:"COMER DE 3 EM 3 HORAS acelera o metabolismo? Mito destruído",cta:"Manda pra quem vive de marmitinha"},
+  {d:28,fmt:"STORIES",pilar:"pro",titulo:"7 meses de Mounjaro com acompanhamento: os números reais",cta:"Responde: você faz acompanhamento?"},
+  {d:29,fmt:"CARROSSEL",pilar:"aut",titulo:"FIM DE SEMANA NÃO ESTRAGA DIETA. A conta que prova",cta:"Salva e para de recomeçar toda segunda"},
+  {d:30,fmt:"REELS",pilar:"ven",titulo:"Imagina dezembro chegando e você no seu melhor shape. Começa hoje",cta:"Comenta EU que eu te chamo na DM"},
+];
+const FMT30_COR={CARROSSEL:"rgba(201,168,76,0.15)",REELS:"rgba(224,123,123,0.12)",POST:"rgba(76,175,125,0.12)",STORIES:"rgba(232,148,58,0.12)"};
+const FMT30_TC={CARROSSEL:"#C9A84C",REELS:"#E07B7B",POST:"#4CAF7D",STORIES:"#E8943A"};
+const PIL30_COR={aut:"var(--blue)",ide:"var(--green)",pro:"var(--amber)",ven:"var(--red)"};
+const PIL30_NM={aut:"Autoridade",ide:"Identificação",pro:"Prova social",ven:"Captação"};
+
+function renderGrid30(){
+  const g=document.getElementById('grid30');
+  if(!g)return;
+  g.innerHTML=DIAS30.map(d=>`
+    <div id="c30-${d.d}" onclick="escreverDia30(${d.d})" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 18px;cursor:pointer;position:relative;overflow:hidden;transition:all .2s" onmouseenter="this.style.borderColor='rgba(201,168,76,0.4)';this.style.transform='translateX(3px)'" onmouseleave="this.style.borderColor='var(--line)';this.style.transform='none'">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${PIL30_COR[d.pilar]};border-radius:12px 0 0 12px"></div>
+      <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:var(--cream-dimmer);margin-bottom:6px">DIA ${d.d}</div>
+      <div style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;font-family:monospace;letter-spacing:1px;background:${FMT30_COR[d.fmt]};color:${FMT30_TC[d.fmt]};padding:2px 8px;border-radius:4px;margin-bottom:8px">${d.fmt}</div>
+      <div style="font-size:13px;font-weight:500;color:var(--cream);line-height:1.35;margin-bottom:6px">${d.titulo}</div>
+      <div style="font-size:10px;color:${PIL30_COR[d.pilar]};font-family:monospace;letter-spacing:.5px;margin-bottom:8px">${PIL30_NM[d.pilar]}</div>
+      <div style="font-size:11px;color:var(--cream-dimmer);font-style:italic;border-top:1px solid var(--line);padding-top:8px">${d.cta}</div>
+    </div>
+  `).join('');
+}
+
+function filtrar30(btn){
+  document.querySelectorAll('#cal30-filters button').forEach(b=>{
+    b.style.background='transparent';
+    b.style.borderColor='var(--line2)';
+    b.style.color='var(--cream-mid)';
+  });
+  btn.style.background='var(--gold-dim)';
+  btn.style.borderColor='var(--gold-border)';
+  btn.style.color='var(--gold)';
+  const f=btn.dataset.f;
+  DIAS30.forEach(d=>{
+    const el=document.getElementById('c30-'+d.d);
+    if(!el)return;
+    el.style.display=(f==='todos'||d.fmt===f)?'':'none';
+  });
+}
+
+function escreverDia30(n){
+  const d=DIAS30.find(x=>x.d===n);
+  if(!d)return;
+  document.getElementById('escrever-input').value=d.titulo;
+  const fm={CARROSSEL:'carrossel',REELS:'reels',POST:'legenda',STORIES:'stories'};
+  document.getElementById('escrever-formato').value=fm[d.fmt]||'carrossel';
+  const pm={aut:'autoridade',ide:'identificacao',pro:'prova',ven:'venda'};
+  document.getElementById('escrever-pilar').value=pm[d.pilar]||'autoridade';
+  go(document.querySelector('[data-panel="escrever"]'));
+  escreverConteudo();
+}
+
+// ══ SÉRIE DE CONTEÚDO ════════════════════════════════════════════════════
+document.getElementById('serie-tema').addEventListener('change',function(){
+  document.getElementById('serie-tema-custom').style.display=this.value==='personalizado'?'block':'none';
+});
+
+let serieAtual=null;
+
+async function gerarSerie(){
+  const temaVal=document.getElementById('serie-tema').value;
+  const dur=document.getElementById('serie-dur').value;
+  const obj=document.getElementById('serie-obj').value;
+  const out=document.getElementById('serie-out');
+
+  const temas={
+    vidasocial:'Shape e vida social: como ter corpo bom sem abrir mao de cerveja, churrasco, rodizio, festa e viagem. Cada semana resolve uma situacao social diferente com estrategia pratica',
+    sobrevivencia:'Sobrevivendo aos fins de semana: por que o sabado e domingo parecem destruir a dieta, a matematica calorica semanal, estrategias para sexta a domingo e o fim do recomeco de segunda',
+    mounjaro:'Guia do Mounjaro na vida real: o que e, como funciona, o que muda na alimentacao, como proteger massa magra, vida social durante o uso e resultados reais com acompanhamento',
+    deficit:'Emagrecer comendo o que gosta: deficit calorico sem sofrimento, volume alimentar, saciedade, trocas inteligentes e por que dietas restritivas falham',
+    proteina:'Proteina do zero: quanto precisa, fontes baratas brasileiras, como bater a meta sem suplemento caro, proteina em cada refeicao do dia',
+    atleta:'Licoes de 20 anos como atleta de alto rendimento e selecao brasileira: o que a natacao ensinou sobre constancia, nutricao e corpo que se aplica na vida de qualquer pessoa',
+    comportamento:'Sua relacao com a comida: culpa alimentar, ciclo de restricao e compulsao, comer por ansiedade, como construir uma relacao normal com comer',
+    personalizado:document.getElementById('serie-tema-input').value||'tema nutricional'
+  };
+
+  const objs={
+    autoridade:'construir autoridade máxima — cada semana o seguidor aprende algo novo e passa a ver André como a referência no assunto',
+    captacao:'converter seguidores em pacientes — a série educa, cria confiança e termina com CTA natural para agendamento',
+    engajamento:'criar comunidade e engajamento — cada semana gera debate, perguntas e identificação, aumentando o alcance orgânico'
+  };
+
+  const temaTitulo=document.getElementById('serie-tema').options[document.getElementById('serie-tema').selectedIndex].text;
+
+  load('btn-serie',true,'Criando série...');
+  out.innerHTML='';
+
+  const PROMPT='Crie uma série de '+dur+' semanas de conteúdo para Instagram do nutricionista André Aragão sobre: '+temas[temaVal]+'\n\nOBJETIVO: '+objs[obj]+'\n\nCADA SEMANA deve ter:\n- Um arco narrativo que avança (não repetir o mesmo ponto)\n- Semana 1: apresenta o problema ou a promessa (gancha novos seguidores)\n- Semanas intermediárias: aprofundamento progressivo (fideliza)\n- Última semana: resolução, prova social e CTA natural\n\nResponda APENAS com JSON:\n{"titulo_serie":"nome da série","tagline":"frase que resume a proposta da série em 1 linha","semanas":[{"semana":1,"titulo":"título da semana","narrativa":"o que acontece nessa semana na jornada do seguidor em 2 frases","posts":[{"dia":"Segunda|Quarta|Sexta","formato":"CARROSSEL|REELS|POST|STORIES","titulo":"título do post","gancho":"primeira frase exata do post","objetivo":"o que esse post faz pelo seguidor"}]}],"cta_final":"CTA da última semana que convida para consulta de forma natural"}';
+
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:2500,system:PERFIL,messages:[{role:'user',content:PROMPT}]};
+    const r=await fetch('https://nutriandre-proxy.vercel.app/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    const texto=d.content?.find(b=>b.type==='text')?.text||'';
+    const jsonMatch=texto.match(/\{[\s\S]*\}/);
+    if(!jsonMatch)throw new Error('Formato inválido');
+    serieAtual=JSON.parse(jsonMatch[0]);
+    renderizarSerie(serieAtual);
+  }catch(e){
+    out.innerHTML='<div class="erro-msg">Erro ao criar série. Tente novamente.<br><small style="opacity:.6">'+(e.message||'')+'</small></div>';
+  }
+  load('btn-serie',false);
+}
+
+function renderizarSerie(serie){
+  const out=document.getElementById('serie-out');
+  const CORES=['var(--blue)','var(--green)','var(--amber)','var(--red)','var(--gold)','var(--cream-mid)'];
+  const FMT_COR={CARROSSEL:'#C9A84C',REELS:'#E07B7B',POST:'#4CAF7D',STORIES:'#E8943A'};
+
+  let html='';
+
+  // Header da série
+  html+='<div style="background:linear-gradient(135deg,#1A2E42,#0D1B2A);border-radius:16px;padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden">';
+  html+='<div style="position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(201,168,76,0.06)"></div>';
+  html+='<div style="font-size:10px;font-family:monospace;letter-spacing:3px;color:var(--gold);margin-bottom:8px">SÉRIE · '+serie.semanas.length+' SEMANAS</div>';
+  html+='<div style="font-family:Georgia,serif;font-size:24px;color:#F0EAD6;font-weight:600;margin-bottom:8px">'+serie.titulo_serie+'</div>';
+  html+='<div style="font-size:13px;color:rgba(201,168,76,0.7);font-style:italic">'+serie.tagline+'</div>';
+  html+='</div>';
+
+  // Linha do tempo visual
+  html+='<div style="display:flex;align-items:center;gap:0;margin-bottom:24px;overflow-x:auto;padding-bottom:8px">';
+  serie.semanas.forEach(function(s,i){
+    const cor=CORES[i]||'var(--cream-dim)';
+    html+='<div style="display:flex;align-items:center;flex-shrink:0">';
+    html+='<div style="width:36px;height:36px;border-radius:50%;background:'+cor+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0D1B2A;font-family:monospace;flex-shrink:0">'+s.semana+'</div>';
+    if(i<serie.semanas.length-1) html+='<div style="width:40px;height:2px;background:var(--line2)"></div>';
+    html+='</div>';
+  });
+  html+='</div>';
+
+  // Cards das semanas
+  html+='<div style="display:flex;flex-direction:column;gap:12px">';
+  serie.semanas.forEach(function(s,i){
+    const cor=CORES[i]||'var(--cream-dim)';
+    html+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">';
+    // Header da semana — clicável
+    html+='<div onclick="toggleSemana('+i+')" style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px" id="sem-head-'+i+'">';
+    html+='<div style="display:flex;align-items:center;gap:12px;flex:1">';
+    html+='<div style="width:32px;height:32px;border-radius:50%;background:'+cor+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0D1B2A;font-family:monospace;flex-shrink:0">'+s.semana+'</div>';
+    html+='<div>';
+    html+='<div style="font-size:11px;font-family:monospace;color:'+cor+';letter-spacing:1px;margin-bottom:2px">SEMANA '+s.semana+'</div>';
+    html+='<div style="font-size:15px;font-weight:600;color:var(--cream)">'+s.titulo+'</div>';
+    html+='</div></div>';
+    html+='<svg id="sem-arrow-'+i+'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cream-dim)" stroke-width="2" style="flex-shrink:0;transition:.2s"><polyline points="6 9 12 15 18 9"/></svg>';
+    html+='</div>';
+
+    // Corpo da semana — começa fechado
+    html+='<div id="sem-body-'+i+'" style="display:none;border-top:1px solid var(--line);padding:16px 20px">';
+    html+='<p style="font-size:12.5px;color:var(--cream-dim);line-height:1.6;margin-bottom:16px;font-style:italic">'+s.narrativa+'</p>';
+
+    // Posts da semana
+    html+='<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">';
+    s.posts.forEach(function(p){
+      const fc=FMT_COR[p.formato]||'var(--cream-dim)';
+      html+='<div style="background:var(--surface2);border-radius:8px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start">';
+      html+='<div style="flex-shrink:0;text-align:center;min-width:60px">';
+      html+='<div style="font-size:9px;font-family:monospace;color:var(--cream-dim);margin-bottom:4px">'+p.dia+'</div>';
+      html+='<span style="font-size:8px;font-weight:700;font-family:monospace;background:'+fc+'20;color:'+fc+';padding:2px 6px;border-radius:3px">'+p.formato+'</span>';
+      html+='</div>';
+      html+='<div style="flex:1">';
+      html+='<div style="font-size:13px;font-weight:600;color:var(--cream);margin-bottom:4px">'+p.titulo+'</div>';
+      html+='<div style="font-size:11.5px;color:var(--cream-dim);font-style:italic;margin-bottom:4px">"'+p.gancho+'"</div>';
+      html+='<div style="font-size:11px;color:var(--cream-dimmer)">→ '+p.objetivo+'</div>';
+      html+='</div>';
+      html+='<button onclick="escreverPost(\''+encodeURIComponent(p.titulo)+'\',\''+p.formato.toLowerCase()+'\')" class="btn btn-ghost" style="font-size:10px;padding:5px 10px;flex-shrink:0">Escrever</button>';
+      html+='</div>';
+    });
+    html+='</div>';
+
+    html+='</div></div>';
+  });
+  html+='</div>';
+
+  // CTA final
+  if(serie.cta_final){
+    html+='<div style="margin-top:16px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:12px;padding:16px 20px">';
+    html+='<div style="font-size:10px;font-weight:700;font-family:monospace;color:var(--gold);margin-bottom:6px;letter-spacing:1.5px">CTA FINAL DA SÉRIE</div>';
+    html+='<div style="font-size:13px;color:var(--cream-mid);line-height:1.6">'+serie.cta_final+'</div>';
+    html+='</div>';
+  }
+
+  out.innerHTML=html;
+}
+
+function toggleSemana(i){
+  const body=document.getElementById('sem-body-'+i);
+  const arrow=document.getElementById('sem-arrow-'+i);
+  const aberto=body.style.display!=='none';
+  body.style.display=aberto?'none':'block';
+  arrow.style.transform=aberto?'none':'rotate(180deg)';
+}
+
+function escreverPost(titulo,formato){
+  document.getElementById('escrever-input').value=decodeURIComponent(titulo);
+  const fm={carrossel:'carrossel',reels:'reels',post:'legenda',stories:'stories'};
+  document.getElementById('escrever-formato').value=fm[formato]||'carrossel';
+  go(document.querySelector('[data-panel="escrever"]'));
+  escreverConteudo();
+}
+
+// ══ GERADOR DE IMAGENS — PROMPTS PROFISSIONAIS ═══════════════════════════
+// Gera prompt de fotografia profissional via Claude e exibe para usar no Midjourney/DALL-E
+
+function promptRapido(p){
+  document.getElementById('img-prompt').value = p;
+  gerarImagem();
+}
+
+async function gerarImagem(){
+  const descricao = document.getElementById('img-prompt').value.trim();
+  const out = document.getElementById('img-out');
+  if(!descricao){ out.innerHTML='<div class="erro-msg">Descreva a imagem antes de gerar.</div>'; return; }
+
+  load('btn-img', true, 'Criando prompt profissional...');
+  out.innerHTML='<div style="text-align:center;padding:40px;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:24px;height:24px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px">Gerando prompts para Midjourney e DALL-E 3...</p></div>';
+
+  const SYS_IMG=`Voce e um diretor de fotografia especializado em conteudo de saude e nutricao para Instagram. Cria prompts de imagem profissionais que nao parecem IA: luz natural, composicao editorial, cores que conversam com a identidade visual do Andre Aragao (terracota, creme, ouro, escuro). NUNCA inclua texto, letras ou palavras nos prompts de imagem.`;
+
+  const promptSys=`Baseado nesta descricao: "${descricao}"
+
+Crie prompts de imagem para uso no Midjourney e no DALL-E 3. O resultado deve ser fotografia editorial de qualidade de revista, nao imagem de stock.
+
+Responda em JSON puro:
+{
+  "midjourney": "prompt completo para Midjourney, em ingles, com parametros --ar 1:1 --style raw --v 6 no final",
+  "dalle": "prompt completo para DALL-E 3, em ingles, descricao fotografica detalhada",
+  "dicas": ["dica pratica 1 sobre como usar essa imagem no carrossel","dica pratica 2"],
+  "alternativas": ["variacao do conceito 1","variacao do conceito 2"]
+}`;
+
+  try{
+    const texto = await api(promptSys, 1200, SYS_IMG);
+    const limpo = texto.replace(/```json|```/gi,'').trim();
+    const m = limpo.match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('Resposta sem JSON');
+    const data = JSON.parse(m[0]);
+
+    out.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="resultado-wrap">
+          <div class="resultado-head">
+            <span class="resultado-label">MIDJOURNEY</span>
+            <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px" onclick="navigator.clipboard.writeText(this.closest('.resultado-wrap').querySelector('.resultado-body').textContent).then(()=>{this.textContent='Copiado ✓';setTimeout(()=>this.textContent='Copiar',2000)})">Copiar</button>
+          </div>
+          <div class="resultado-body" style="font-family:monospace;font-size:11.5px;color:var(--cream-mid)">${esc(data.midjourney||'')}</div>
+        </div>
+        <div class="resultado-wrap">
+          <div class="resultado-head">
+            <span class="resultado-label">DALL-E 3 / ADOBE FIREFLY</span>
+            <button class="btn btn-ghost" style="font-size:11px;padding:7px 14px" onclick="navigator.clipboard.writeText(this.closest('.resultado-wrap').querySelector('.resultado-body').textContent).then(()=>{this.textContent='Copiado ✓';setTimeout(()=>this.textContent='Copiar',2000)})">Copiar</button>
+          </div>
+          <div class="resultado-body" style="font-family:monospace;font-size:11.5px;color:var(--cream-mid)">${esc(data.dalle||'')}</div>
+        </div>
+        ${data.dicas&&data.dicas.length?`<div style="background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:10px;padding:14px 18px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">COMO USAR NO CARROSSEL</div>
+          ${data.dicas.map(d=>'<div style="font-size:12.5px;color:var(--cream-mid);margin-bottom:4px">· '+esc(d)+'</div>').join('')}
+        </div>`:''}
+        ${data.alternativas&&data.alternativas.length?('<div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:14px 18px"><div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cream-dim);margin-bottom:8px">VARIAÇÕES DO CONCEITO</div>'+data.alternativas.map(function(a){return '<button class="btn btn-ghost" style="font-size:11px;margin:0 6px 6px 0;padding:6px 12px" onclick="document.getElementById('+String.fromCharCode(39)+'img-prompt'+String.fromCharCode(39)+').value='+String.fromCharCode(39)+a.replace(/'/g,'')+String.fromCharCode(39)+'">'+esc(a)+'</button>';}).join('')+'</div>'):''}
+      </div>`;
+  }catch(e){
+    out.innerHTML='<div class="erro-msg">Erro ao gerar prompts: '+esc(e.message||'tente novamente.')+'</div>';
+  }
+  load('btn-img', false);
+}
+
+function atualizarHistorico(){
+  const grid = document.getElementById('img-grid');
+  const hist = document.getElementById('img-historico');
+  if(imgHistorico.length === 0) return;
+  hist.style.display = 'block';
+  grid.innerHTML = imgHistorico.map((img,i) => `
+    <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line)">
+      <img src="${img.url}" style="width:100%;display:block;aspect-ratio:1;object-fit:cover">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(10,15,20,0.8);padding:6px 8px;display:flex;gap:6px">
+        <a href="${img.url}" download="img-${i+1}.png" target="_blank" style="font-size:9px;color:var(--gold);font-family:monospace;text-decoration:none">↓ Baixar</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+function usarNoCarrossel(url){
+  // Guarda URL para usar como foto no carrossel
+  if(!window.fotosExternas) window.fotosExternas = [];
+  window.fotosExternas.push(url);
+  go(document.querySelector('[data-panel="carrossel"]'));
+  document.getElementById('car-out').innerHTML='<div class="erro-msg" style="background:rgba(76,175,125,0.1);border-color:rgba(76,175,125,0.3);color:var(--green)">Imagem adicionada. Gere o carrossel e ela será usada automaticamente.</div>';
+}
+
+// ══ ROTEIROS DE REELS ════════════════════════════════════════════════════
+async function gerarRoteiro(){
+  const obj=document.getElementById('reels-obj').value;
+  const tema=document.getElementById('reels-tema').value;
+  const out=document.getElementById('reels-out');
+  load('btn-reels',true,'Escrevendo roteiro...');
+  out.innerHTML='';
+
+  const objs={
+    crescimento:'atrair seguidores novos que ainda não conhecem André. O hook deve parar o scroll de qualquer pessoa interessada em saúde',
+    autoridade:'posicionar André como a referência em nutrição clínica e esportiva. Quem assiste deve pensar "esse cara sabe o que faz"',
+    identificacao:'fazer o espectador se ver na situação. Deve gerar comentários "isso sou eu" e marcações de amigos',
+    captacao:'levar o espectador a querer agendar uma consulta. CTA natural no final, sem pressão'
+  };
+  const temas={
+    churrasco:'a pessoa vai pro churrasco hoje e nao sabe o que fazer com a dieta. Andre da o passo a passo pratico: comer antes, ordem na mesa, alternar bebida, e a verdade final de que um churrasco nao define nada',
+    cerveja:'cerveja engorda? A matematica real do alcool, por que o problema e o combo cerveja + petisco + delivery, e como beber socialmente mantendo resultado',
+    fimdesemana:'a pessoa exagerou no fim de semana e acha que ferrou tudo. Andre mostra a conta calorica da semana inteira e por que segunda nao e recomeco',
+    rodizio:'como aproveitar rodizio de japones, pizzaria ou churrascaria: estrategia de prato, ordem dos alimentos, sair satisfeito sem culpa',
+    saojoao:'Sao Joao chegou com canjica, pamonha e bolo de milho. Como aproveitar as festas juninas sem jogar o resultado fora, com comparativo pratico das comidas tipicas',
+    delivery:'bateu preguica e vai pedir iFood: as melhores escolhas por tipo de restaurante, como pedir certo e o que evitar no combo',
+    noite:'comer a noite engorda? A verdade sobre horario das refeicoes, o que importa de verdade e por que o jantar nao e o vilao',
+    travou:'o peso travou ha semanas: plateau, retencao, ajustes praticos e quando e so o corpo se adaptando',
+    proteina:'a maioria das pessoas come proteina de menos: quanto precisa de verdade, fontes baratas brasileiras e como bater a meta no dia a dia',
+    mounjaro:'Mounjaro na vida real: o que muda na alimentacao, como proteger massa magra e por que sem acompanhamento o resultado vai embora',
+    atleta:'a trajetoria de Andre, 20 anos de natacao e selecao brasileira, e a licao pratica que se aplica a quem nao e atleta',
+    consulta:'o que acontece de verdade na primeira consulta com Andre: sem bronca, sem dieta de folha, plano que cabe na vida da pessoa'
+  };
+
+  const PROMPT='Crie um roteiro de Reels de Instagram de 30-45 segundos para o nutricionista André Aragão, no estilo @thiagobarros.\n\nOBJETIVO: '+objs[obj]+'\nTEMA: '+temas[tema]+'\n\nREGRAS DO ROTEIRO:\n1. O hook dos primeiros 3 segundos e a SITUACAO, falada do jeito que a pessoa pensa. Ex: "Vou pro churrasco hoje e to de dieta. E agora?". Nada de "voce sabia que"\n2. Tom de amigo que entende do assunto, conversa de gente. Frase curta\n3. Maximo 100 palavras na fala total\n4. Uma ideia so, com dicas numeradas se couber\n5. Fechamento com uma verdade simples que a pessoa quer salvar, e CTA natural\n\nFORMATO DA RESPOSTA (JSON apenas):\n{"duracao":"30s|45s","hook":"frase exata dos primeiros 3 segundos","cenas":[{"tempo":"0-3s","fala":"fala exata","visual":"o que mostrar ou fazer na cena"}],"legenda":"legenda completa pronta para publicar com CTA e 3 hashtags","dica_gravacao":"1 dica prática de como gravar esse roteiro","por_que_funciona":"por que esse roteiro vai performar bem em 1 frase"}';
+
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:1500,system:PERFIL,messages:[{role:'user',content:PROMPT}]};
+    const r=await fetch('https://nutriandre-proxy.vercel.app/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    const texto=d.content?.find(b=>b.type==='text')?.text||'';
+    const jsonMatch=texto.match(/\{[\s\S]*\}/);
+    if(!jsonMatch)throw new Error('Formato invalido');
+    const data=JSON.parse(jsonMatch[0]);
+
+    let html='<div class="resultado-wrap">';
+    // Header
+    html+='<div class="resultado-head">';
+    html+='<div style="display:flex;align-items:center;gap:10px">';
+    html+='<span class="resultado-label">ROTEIRO · '+data.duracao+'</span>';
+    html+='<span style="font-size:9px;font-family:monospace;color:var(--green);background:rgba(76,175,125,0.1);padding:3px 8px;border-radius:4px">'+data.por_que_funciona+'</span>';
+    html+='</div>';
+    html+='<button class="btn btn-ghost" style="font-size:11px;padding:7px 14px" onclick="copiarRoteiro(this)">Copiar</button>';
+    html+='</div>';
+
+    // Hook destaque
+    html+='<div style="padding:16px 24px 0">';
+    html+='<div style="background:linear-gradient(135deg,#1A2E42,#0D1B2A);border-radius:12px;padding:16px 20px;margin-bottom:20px">';
+    html+='<div style="font-size:9px;font-weight:700;font-family:monospace;letter-spacing:2px;color:var(--gold);margin-bottom:8px">HOOK — PRIMEIROS 3 SEGUNDOS</div>';
+    html+='<div style="font-size:18px;font-family:Georgia,serif;color:#F0EAD6;line-height:1.4;font-style:italic">"'+data.hook+'"</div>';
+    html+='</div>';
+
+    // Cenas
+    html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px">ROTEIRO COMPLETO</div>';
+    html+='<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">';
+    data.cenas.forEach(function(cena,i){
+      html+='<div style="display:grid;grid-template-columns:70px 1fr;gap:12px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line)">';
+      html+='<span style="font-size:10px;font-family:monospace;color:var(--gold);font-weight:700;padding-top:2px">'+cena.tempo+'</span>';
+      html+='<div>';
+      html+='<div style="font-size:14px;color:var(--cream);line-height:1.55;margin-bottom:5px">'+cena.fala+'</div>';
+      html+='<div style="font-size:11px;color:var(--cream-dim);font-style:italic">['+cena.visual+']</div>';
+      html+='</div></div>';
+    });
+    html+='</div>';
+
+    // Dica de gravação
+    html+='<div style="background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start">';
+    html+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    html+='<div><div style="font-size:10px;font-weight:700;font-family:monospace;color:var(--gold);margin-bottom:2px">DICA DE GRAVAÇÃO</div><div style="font-size:12px;color:var(--cream-mid)">'+data.dica_gravacao+'</div></div>';
+    html+='</div>';
+
+    // Legenda
+    html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">LEGENDA PRONTA</div>';
+    html+='<div style="background:var(--surface2);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--cream-mid);line-height:1.7;white-space:pre-wrap" id="legenda-reels">'+data.legenda+'</div>';
+    html+='</div>';
+
+    // Footer
+    html+='<div class="resultado-foot">';
+    html+='<button class="btn btn-ghost" style="font-size:11px" onclick="gerarRoteiro()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Gerar outro</button>';
+    html+='<button class="btn btn-ghost" style="font-size:11px" onclick="copiarLegenda()">Copiar só a legenda</button>';
+    html+='</div>';
+    html+='</div>';
+
+    out.innerHTML=html;
+  }catch(e){
+    out.innerHTML='<div class="erro-msg">Erro ao gerar roteiro. Tente novamente.<br><small style="opacity:.6">'+(e.message||'')+'</small></div>';
+  }
+  load('btn-reels',false);
+}
+
+function copiarRoteiro(btn){
+  const wrap=btn.closest('.resultado-wrap');
+  const hook=wrap.querySelector('div[style*="font-style:italic"]')?.innerText||'';
+  const cenas=Array.from(wrap.querySelectorAll('[style*="grid-template-columns"]')).map(c=>c.innerText).join('\n');
+  const legenda=wrap.querySelector('#legenda-reels')?.innerText||'';
+  const texto='HOOK:\n'+hook+'\n\nROTEIRO:\n'+cenas+'\n\nLEGENDA:\n'+legenda;
+  navigator.clipboard.writeText(texto).then(()=>{const o=btn.textContent;btn.textContent='Copiado ✓';setTimeout(()=>btn.textContent=o,2000);});
+}
+
+function copiarLegenda(){
+  const legenda=document.querySelector('#legenda-reels')?.innerText||'';
+  navigator.clipboard.writeText(legenda);
+}
+
+// ══ TENDÊNCIAS ═══════════════════════════════════════════════════════════
+async function buscarTendencias(){
+  const foco=document.getElementById('trend-foco').value;
+  const out=document.getElementById('trend-out');
+  load('btn-trend',true,'Analisando...');
+  out.innerHTML='';
+  const focos={geral:'situacoes da vida real com comida: delivery, rotina corrida, fim de semana, comer fora',saojoao:'Sao Joao, festas juninas, canjica, pamonha, milho, comidas tipicas e como aproveitar a epoca sem culpa',social:'alcool, cerveja, churrasco, rodizio, happy hour e vida social de quem quer shape',glp1:'Mounjaro, tirzepatida e analogos GLP-1 no contexto nutricional e da vida real',esportiva:'alimentacao para quem treina, shape, proteina, pre e pos-treino',comportamento:'comer por ansiedade, culpa alimentar, ciclo restricao e compulsao'};
+  const PROMPT='Junho 2026. Gere 6 ideias de post Instagram sobre '+focos[foco]+' para publico brasileiro 25-35 anos. Foco em engajamento real: curtidas, salvamentos, comentarios, marcacoes. Use gatilhos: REVELACAO (surpreende), IDENTIFICACAO (pessoa se reconhece), COMPARTILHAMENTO (quer mandar para alguem), SALVAMENTO (info pratica), DEBATE (gera opiniao), VALIDACAO (finalmente alguem falou). Linguagem simples, sem jargao cientifico. JSON apenas: {"tendencias":[{"titulo":"titulo como no Instagram","descricao":"por que engaja em 2 frases simples","potencial":"ALTO|MEDIO|BAIXO","angulo":"como Andre deve abordar usando sua historia de atleta ou caso clinico","formato":"CARROSSEL|REELS|POST|STORIES","urgencia":"Postar agora|Esta semana|Este mes","gatilho":"REVELACAO|IDENTIFICACAO|COMPARTILHAMENTO|SALVAMENTO|DEBATE|VALIDACAO"}],"insight":"1 frase sobre o que une esses temas"}';
+  try{
+    const body={model:'claude-sonnet-4-6',max_tokens:1500,system:PERFIL,messages:[{role:'user',content:PROMPT}]};
+    const r=await fetch('https://nutriandre-proxy.vercel.app/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    const texto=d.content?.find(b=>b.type==='text')?.text||'';
+    const jsonMatch=texto.match(/\{[\s\S]*\}/);
+    if(!jsonMatch)throw new Error('Formato invalido');
+    const data=JSON.parse(jsonMatch[0]);
+    const PC={ALTO:'var(--green)',MEDIO:'var(--amber)',BAIXO:'var(--cream-dim)'};
+    const PB={ALTO:'rgba(76,175,125,0.1)',MEDIO:'rgba(232,148,58,0.1)',BAIXO:'var(--surface2)'};
+    const GATCOR={'REVELACAO':'var(--blue)','IDENTIFICACAO':'var(--green)','COMPARTILHAMENTO':'var(--amber)','SALVAMENTO':' var(--gold)','DEBATE':'var(--red)','VALIDACAO':'var(--cream-mid)'};
+    let html='<div style="margin-bottom:16px"><span style="font-size:12px;color:var(--cream-mid);font-style:italic">'+(data.insight||'')+'</span></div><div style="display:flex;flex-direction:column;gap:12px">';
+    data.tendencias.forEach(function(t){
+      const cor=PC[t.potencial]||'var(--cream-dim)';
+      const bg=PB[t.potencial]||'var(--surface2)';
+      const gcor=GATCOR[t.gatilho]||'var(--cream-dim)';
+      html+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden">';
+      html+='<div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:'+cor+';border-radius:12px 0 0 12px"></div>';
+      html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">';
+      html+='<div style="flex:1;min-width:200px">';
+      html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">';
+      html+='<span style="font-size:9px;font-weight:700;font-family:monospace;background:'+bg+';color:'+cor+';padding:3px 8px;border-radius:4px">'+t.potencial+'</span>';
+      html+='<span style="font-size:9px;font-family:monospace;color:var(--cream-dim);background:var(--surface2);padding:3px 8px;border-radius:4px;border:1px solid var(--line)">'+t.formato+'</span>';
+      html+='<span style="font-size:9px;font-family:monospace;color:'+gcor+';background:rgba(0,0,0,0.2);padding:3px 8px;border-radius:4px">'+t.gatilho+'</span>';
+      html+='<span style="font-size:9px;font-family:monospace;color:var(--gold)">'+t.urgencia+'</span>';
+      html+='</div>';
+      html+='<div style="font-family:Georgia,serif;font-size:16px;font-weight:600;color:var(--cream);line-height:1.3;margin-bottom:6px">'+t.titulo+'</div>';
+      html+='<div style="font-size:12px;color:var(--cream-dim);line-height:1.5;margin-bottom:10px">'+t.descricao+'</div>';
+      html+='<div style="font-size:12px;color:var(--cream-mid);line-height:1.5;padding:10px 12px;background:var(--gold-dim);border-radius:8px;border-left:2px solid var(--gold)">';
+      html+='<span style="font-size:9px;font-weight:700;font-family:monospace;color:var(--gold);display:block;margin-bottom:4px">SEU ÂNGULO</span>'+t.angulo+'</div>';
+      html+='</div>';
+      html+='<button onclick="usarTendencia(this)" data-titulo="'+encodeURIComponent(t.titulo)+'" data-fmt="'+t.formato.toLowerCase()+'" class="btn btn-ghost" style="font-size:10px;padding:6px 12px;white-space:nowrap;flex-shrink:0;align-self:flex-start">Criar</button>';
+      html+='</div></div>';
+    });
+    html+='</div>';
+    out.innerHTML=html;
+  }catch(e){
+    out.innerHTML='<div class="erro-msg">Nao consegui buscar tendencias agora. Tente novamente.<br><small style="opacity:.6">'+(e.message||'')+'</small></div>';
+  }
+  load('btn-trend',false);
+}
+
+
+function usarTendencia(btn){
+  const titulo=decodeURIComponent(btn.dataset.titulo);
+  const fmt=btn.dataset.fmt;
+  document.getElementById('escrever-input').value=titulo;
+  const fm={carrossel:'carrossel',reels:'reels',post:'legenda',stories:'stories'};
+  document.getElementById('escrever-formato').value=fm[fmt]||'carrossel';
+  go(document.querySelector('[data-panel="escrever"]'));
+  escreverConteudo();
+}
+
+
+async function apiRaw(body){
+  let r;
+  try{r=await fetch("https://nutriandre-proxy.vercel.app/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});}
+  catch(e){throw new Error("Sem conexao com o servidor.");}
+  if(!r.ok){let msg="Erro ("+r.status+")";try{const d=await r.json();msg=d.error?.message||msg;}catch(_){}throw new Error(msg);}
+  let d;try{d=await r.json();}catch(e){throw new Error("Resposta invalida.");}
+  if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+  return d;
+}
+
+async function apiFable(messages,system,max){
+  max=max||3000;
+  let texto=null;
+  try{
+    const d=await apiRaw({model:"claude-fable-5",max_tokens:max,system:system,messages:messages});
+    if(d.stop_reason!=="refusal")texto=d.content?.find(b=>b.type==="text")?.text;
+  }catch(e){if(/conexao|internet/i.test(e.message||''))throw e;}
+  if(!texto){
+    const d=await apiRaw({model:"claude-sonnet-4-6",max_tokens:max,system:system,messages:messages});
+    texto=d.content?.find(b=>b.type==="text")?.text;
+  }
+  if(!texto)throw new Error("Modelo nao retornou texto.");
+  return texto;
+}
+
+// ══ CARROSSEL V2 — FABLE 5 + CANVAS EDITORIAL ════════════════════════════
+
+
+// ══ CONSULTOR ESTRATÉGICO · FABLE 5 ════════════════════════════════════════
+const CONSULTOR_SYS=`Voce e o Consultor Estrategico do nutricionista Andre Aragao. Voce nao e um gerador de conteudo. Voce e um diretor de crescimento que conhece o Andre profundamente e fala com ele de igual para igual.
+
+SOBRE ANDRE: nutricionista clinico e esportivo (CRN 11-16678), Fortaleza-CE. Ex-nadador de selecao brasileira, 20 anos de alto rendimento. Mais de 2000 pacientes. Especialidade: emagrecimento, composicao corporal, Mounjaro e GLP-1, nutricao esportiva. Instagram com cerca de 4 mil seguidores frios. Objetivo: ser a referencia numero 1 em Fortaleza e captar pacientes particulares. Estrategia de 180 dias em 3 fases: Fundacao (1-60), Autoridade (61-120), Conversao (121-180). Referencia de estilo de conteudo: @thiagobarros.
+
+COMO VOCE TRABALHA:
+1. Leia o diario de bordo COMPLETO antes de falar. Cada post, DM, resultado e metrica registrada.
+2. Identifique padroes que Andre nao ve: temas que se repetem nas DMs, formatos que performam, sinais de intencao de consulta.
+3. Fale primeiro. Aponte a oportunidade da semana com dados concretos do diario.
+4. Seja direto e pratico. Diagnostico, oportunidade, acao. Sem elogio vazio.
+5. Quando perguntas se repetem nas DMs e nunca viraram post, e prioridade maxima.
+6. NUNCA use travessao. So ponto ou virgula.`;
+
+function conLoad(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback;}catch(e){return fallback;}}
+function conSave(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
+
+let conDiario=conLoad('con_diario',[]);
+let conChatHist=conLoad('con_chat',[]);
+
+const CON_TIPOS={POST:{cor:'#5B9FD4',bg:'rgba(91,159,212,.12)'},DM:{cor:'#5DBB8A',bg:'rgba(93,187,138,.12)'},RESULTADO:{cor:'#E8943A',bg:'rgba(232,148,58,.12)'},METRICA:{cor:'#C9A84C',bg:'rgba(201,168,76,.12)'},NOTA:{cor:'#E07B7B',bg:'rgba(224,123,123,.12)'}};
+
+function conDiarioTexto(){
+  if(conDiario.length===0)return "(diario vazio)";
+  return conDiario.map(function(e){return "["+e.data+" · "+e.tipo+"] "+e.txt;}).join("\n");
+}
+
+function conAdd(){
+  const tipo=document.getElementById('con-tipo').value;
+  const txt=document.getElementById('con-entrada').value.trim();
+  if(!txt)return;
+  const agora=new Date();
+  const data=String(agora.getDate()).padStart(2,'0')+'/'+String(agora.getMonth()+1).padStart(2,'0');
+  conDiario.unshift({tipo,txt,data,ts:agora.getTime()});
+  if(conDiario.length>400)conDiario=conDiario.slice(0,400);
+  conSave('con_diario',conDiario);
+  document.getElementById('con-entrada').value='';
+  conRenderDiario();
+}
+
+function conDel(ts){
+  conDiario=conDiario.filter(e=>e.ts!==ts);
+  conSave('con_diario',conDiario);
+  conRenderDiario();
+}
+
+function conRenderDiario(){
+  const el=document.getElementById('con-diario');
+  if(!el)return;
+  if(conDiario.length===0){
+    el.innerHTML='<div style="font-size:11.5px;color:var(--cream-dim);font-style:italic;padding:8px 4px">Nenhuma entrada ainda. Comece registrando os últimos posts e DMs.</div>';
+    return;
+  }
+  el.innerHTML='<div style="font-size:9px;font-family:monospace;color:var(--cream-dim);letter-spacing:1px;margin-bottom:8px">'+conDiario.length+' ENTRADAS</div>'+
+    conDiario.slice(0,30).map(function(e){
+      const t=CON_TIPOS[e.tipo]||CON_TIPOS.NOTA;
+      return '<div class="con-entry">'+
+        '<button class="con-entry-del" onclick="conDel('+e.ts+')" title="Apagar">×</button>'+
+        '<span class="con-entry-tipo" style="color:'+t.cor+';background:'+t.bg+'">'+e.tipo+'</span>'+
+        '<div class="con-entry-txt">'+esc(e.txt)+'</div>'+
+        '<div class="con-entry-data">'+e.data+'</div></div>';
+    }).join('')+
+    (conDiario.length>30?'<div style="font-size:10px;color:var(--cream-dim);font-family:monospace;text-align:center;padding:6px">+ '+(conDiario.length-30)+' entradas (o Consultor lê todas)</div>':'');
+}
+
+async function conBriefing(){
+  const area=document.getElementById('con-brief-area');
+  if(!area)return;
+  load('btn-con-brief',true,'Analisando histórico...');
+  area.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:20px;height:20px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px">Fable 5 lendo '+conDiario.length+' entradas do diário...</p></div>';
+
+  const hoje=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  const prompt='Hoje e '+hoje+'.\n\nDIARIO DE BORDO:\n'+conDiarioTexto()+'\n\nGere o briefing estrategico de hoje. Estruture com estas marcas exatas:\n\n===DIAGNOSTICO===\n(2-4 frases sobre o estado atual baseado nos dados)\n\n===OPORTUNIDADE===\n(a maior oportunidade identificada nos dados)\n\n===GANCHO===\n(titulo EM CAIXA ALTA do conteudo para HOJE, mais 1 frase de direcao)\n\n===ACAO===\n(a acao mais importante de hoje alem do post, 1-2 frases)';
+
+  try{
+    const texto=await apiFable([{role:'user',content:prompt}],CONSULTOR_SYS,2000);
+    function ext(t,a,b){const i=t.indexOf(a);if(i===-1)return'';const s=i+a.length;if(!b)return t.slice(s).trim();const f=t.indexOf(b,s);return(f===-1?t.slice(s):t.slice(s,f)).trim();}
+    const p={
+      diag:ext(texto,'===DIAGNOSTICO===','===OPORTUNIDADE==='),
+      opo:ext(texto,'===OPORTUNIDADE===','===GANCHO==='),
+      gan:ext(texto,'===GANCHO===','===ACAO==='),
+      aca:ext(texto,'===ACAO===',null)
+    };
+    if(!p.diag&&!p.opo)p.diag=texto;
+    const dataLabel=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    let h='<div class="con-brief">';
+    h+='<div class="con-brief-head"><span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">BRIEFING · '+dataLabel+'</span><span class="con-fable-tag">FABLE 5</span></div>';
+    if(p.diag)h+='<div class="con-brief-sec"><div class="con-brief-lbl">Diagnóstico</div><div class="con-brief-txt">'+esc(p.diag)+'</div></div>';
+    if(p.opo)h+='<div class="con-brief-sec"><div class="con-brief-lbl">Oportunidade identificada</div><div class="con-brief-txt">'+esc(p.opo)+'</div></div>';
+    if(p.gan){
+      h+='<div class="con-brief-sec" style="background:var(--gold-dim)"><div class="con-brief-lbl">Conteúdo de hoje</div><div class="con-brief-txt" style="color:var(--cream)">'+esc(p.gan)+'</div>';
+      h+='<button class="btn btn-ghost" style="font-size:11px;margin-top:10px" onclick="conUsarGancho()">Escrever este conteúdo →</button></div>';
+    }
+    if(p.aca)h+='<div class="con-brief-sec"><div class="con-brief-lbl">Ação do dia</div><div class="con-brief-txt">'+esc(p.aca)+'</div></div>';
+    h+='</div>';
+    area.innerHTML=h;
+    window._conGancho=p.gan;
+    conSave('con_brief',{html:h,gancho:p.gan,data:dataLabel});
+  }catch(e){
+    area.innerHTML='<div class="erro-msg">'+esc(e.message||'Erro ao gerar briefing. Verifique a conexão.')+'</div>';
+  }
+  load('btn-con-brief',false);
+}
+
+function conUsarGancho(){
+  const g=window._conGancho||'';
+  const linha=g.split('\n')[0].trim();
+  document.getElementById('escrever-input').value=linha;
+  document.getElementById('escrever-formato').value='carrossel';
+  go(document.querySelector('[data-panel="escrever"]'));
+  escreverConteudo();
+}
+
+function conRenderChat(){
+  const el=document.getElementById('con-chat');
+  if(!el)return;
+  if(conChatHist.length===0){
+    el.innerHTML='<div style="font-size:11.5px;color:var(--cream-dim);font-style:italic;padding:4px">Sem conversas ainda. O Consultor conhece todo o seu diário.</div>';
+    return;
+  }
+  el.innerHTML=conChatHist.map(m=>
+    '<div class="con-msg '+m.role+'"><span class="con-msg-role">'+(m.role==='user'?'VOCÊ':'CONSULTOR')+'</span>'+esc(m.content)+'</div>'
+  ).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+async function conEnviar(){
+  const inp=document.getElementById('con-msg-input');
+  if(!inp)return;
+  const msg=inp.value.trim();
+  if(!msg)return;
+  const btn=document.getElementById('btn-con-msg');
+  if(btn)btn.disabled=true;
+  conChatHist.push({role:'user',content:msg});
+  inp.value='';
+  conRenderChat();
+  const el=document.getElementById('con-chat');
+  if(el){el.innerHTML+='<div class="con-msg assistant" id="con-typing"><span class="con-msg-role">CONSULTOR</span><span style="opacity:.5">Pensando...</span></div>';el.scrollTop=el.scrollHeight;}
+  try{
+    const sys=CONSULTOR_SYS+'\n\nDIARIO DE BORDO ATUAL:\n'+conDiarioTexto();
+    const msgs=conChatHist.slice(-20).map(m=>({role:m.role,content:m.content}));
+    const resp=await apiFable(msgs,sys,1800);
+    conChatHist.push({role:'assistant',content:resp});
+    if(conChatHist.length>60)conChatHist=conChatHist.slice(-60);
+    conSave('con_chat',conChatHist);
+  }catch(e){
+    conChatHist.push({role:'assistant',content:'Erro: '+(e.message||'tente novamente.')});
+  }
+  conRenderChat();
+  if(btn)btn.disabled=false;
+}
+
+function conInit(){
+  conRenderDiario();
+  conRenderChat();
+  const cached=conLoad('con_brief',null);
+  const hoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  if(cached&&cached.html&&cached.data===hoje){
+    const area=document.getElementById('con-brief-area');
+    if(area)area.innerHTML=cached.html;
+    window._conGancho=cached.gancho;
+  }
+  const inp=document.getElementById('con-msg-input');
+  if(inp)inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();conEnviar();}
+  });
+  const entInp=document.getElementById('con-entrada');
+  if(entInp)entInp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();conAdd();}
+  });
+}
+
+
+// ── MOTOR VISUAL V3 — design editorial de verdade ───────────────────────
+
+const CAR2_ESTILOS={
+  revista:{
+    nome:'Revista',
+    bg:'#F2EDE3',ink:'#16140F',sec:'#6B6557',
+    inv:'#F2EDE3',blocoInk:'#16140F',
+    grain:0.35,paper:true
+  },
+  cartaz:{
+    nome:'Cartaz',
+    bg:null /* usa cor de destaque */,ink:'#16140F',sec:'rgba(22,20,15,0.55)',
+    inv:'#F6F1E6',blocoInk:'#16140F',
+    grain:0.3,paper:false
+  },
+  noturno:{
+    nome:'Noturno',
+    bg:'#0C0B09',ink:'#EFE7D5',sec:'rgba(239,231,213,0.5)',
+    inv:'#0C0B09',blocoInk:'#EFE7D5',
+    grain:0.5,paper:false
+  }
+};
+
+const CAR2_PALETAS=[
+  {nome:'Terracota',cor:'#C4694F'},{nome:'Gold',cor:'#C9A84C'},
+  {nome:'Verde oliva',cor:'#7A8450'},{nome:'Azul tinta',cor:'#2E4A62'},
+  {nome:'Vinho',cor:'#7E3B47'},{nome:'Laranja',cor:'#D97B3F'}
+];
+
+let car2EstiloAtual='revista';
+let car2CorAtual='#C4694F';
+let car2Fotos=[];
+let car2SlidesGerados=[];
+let car2LegendaGerada='';
+
+const CAR2_TEMAS_RAPIDOS=[
+  'VOU PRO CHURRASCO HOJE, E AGORA?',
+  'CERVEJA ENGORDA?',
+  'FIM DE SEMANA ESTRAGOU TUDO?',
+  'TÔ DE DIETA E CHEGOU O SÃO JOÃO',
+  'MOUNJARO NA VIDA REAL',
+  'PESO TRAVOU, E AGORA?',
+  'O QUE PEDIR NO IFOOD',
+  'PROTEÍNA: VOCÊ COME DE MENOS',
+  'COMER À NOITE ENGORDA?',
+];
+
+function car2Init(){
+  const pills=document.getElementById('car2-pills');
+  if(pills){
+    pills.innerHTML=CAR2_TEMAS_RAPIDOS.map(t=>
+      '<span class="car2-tema-pill" onclick="document.getElementById(\'car2-tema\').value=\''+t.replace(/'/g,"\\'")+'\'">'+t+'</span>'
+    ).join('');
+  }
+  const paleta=document.getElementById('car2-paleta');
+  if(paleta){
+    paleta.innerHTML=CAR2_PALETAS.map((p,i)=>
+      '<div class="paleta-dot'+(i===0?' sel':'')+'" style="background:'+p.cor+';box-shadow:0 0 0 3px '+(i===0?p.cor:'transparent')+'" title="'+p.nome+'" onclick="car2SelecionarCor(this,\''+p.cor+'\')" data-cor="'+p.cor+'"></div>'
+    ).join('');
+  }
+  const sel=document.getElementById('car2-cal30-sel');
+  if(sel&&typeof DIAS30!=='undefined'){
+    DIAS30.filter(d=>d.fmt==='CARROSSEL').forEach(d=>{
+      const opt=document.createElement('option');
+      opt.value=d.d;opt.textContent='Dia '+d.d+' · '+d.titulo;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change',function(){
+      const d=DIAS30.find(x=>x.d===parseInt(this.value));
+      const pr=document.getElementById('car2-cal30-preview');
+      if(pr)pr.textContent=d?d.titulo:'';
+    });
+  }
+  const fileInput=document.getElementById('car2-foto');
+  if(fileInput)fileInput.addEventListener('change',function(e){
+    const files=Array.from(e.target.files||[]);
+    files.forEach(function(f){
+      const rd=new FileReader();
+      rd.onload=ev=>{car2Fotos.push(ev.target.result);car2RenderFotosPrev();};
+      rd.readAsDataURL(f);
+    });
+    e.target.value='';
+  });
+}
+
+function car2RenderFotosPrev(){
+  const prev=document.getElementById('car2-fotos-prev');
+  if(!prev)return;
+  prev.innerHTML=car2Fotos.map(function(f,i){
+    return '<div style="position:relative;width:58px;height:58px;flex-shrink:0">'+
+      '<img src="'+f+'" style="width:58px;height:58px;object-fit:cover;border-radius:6px;border:2px solid var(--gold-border)">'+
+      '<div style="position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:8px;font-family:monospace;color:#fff;background:rgba(0,0,0,.65);border-radius:0 0 4px 4px;padding:1px 0">'+(i===0?'CAPA':'F'+(i+1))+'</div>'+
+      '<button onclick="car2RemoverFoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1;padding:0">×</button>'+
+      '</div>';
+  }).join('');
+}
+function car2RemoverFoto(i){car2Fotos.splice(i,1);car2RenderFotosPrev();}
+
+function car2Tab(btn,src){
+  document.querySelectorAll('.car2-stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.car2-source-block').forEach(b=>b.classList.remove('active'));
+  document.getElementById('car2-src-'+src).classList.add('active');
+}
+
+function car2SelecionarEstilo(card){
+  document.querySelectorAll('.estilo-card').forEach(c=>c.classList.remove('sel'));
+  card.classList.add('sel');
+  car2EstiloAtual=card.dataset.estilo;
+}
+
+function car2SelecionarCor(dot,cor){
+  document.querySelectorAll('.paleta-dot').forEach(d=>{d.classList.remove('sel');d.style.boxShadow='0 0 0 3px transparent';});
+  dot.classList.add('sel');
+  dot.style.boxShadow='0 0 0 3px '+cor;
+  car2CorAtual=cor;
+  if(car2SlidesGerados.length>0)car2RenderSlides(car2SlidesGerados);
+}
+
+function car2AjusteRapido(estilo){
+  const card=document.querySelector('.estilo-card[data-estilo="'+estilo+'"]');
+  if(card)car2SelecionarEstilo(card);
+  if(car2SlidesGerados.length>0)car2RenderSlides(car2SlidesGerados);
+}
+
+function car2ImportarConsultor(){
+  const gancho=window._conGancho||'';
+  if(gancho){
+    document.getElementById('car2-tema').value=gancho.split('\n')[0].trim();
+    document.querySelectorAll('.car2-stab')[0].click();
+  } else {
+    const el=document.getElementById('car2-gancho-consultor');
+    if(el)el.textContent='Nenhum gancho disponível. Gere um briefing no Consultor primeiro.';
+  }
+}
+
+function car2GetTema(){
+  const activeTab=document.querySelector('.car2-stab.active');
+  if(!activeTab)return document.getElementById('car2-tema').value.trim();
+  const src=activeTab.textContent.trim();
+  if(src.includes('30 dias')){
+    const sel=document.getElementById('car2-cal30-sel');
+    const d=DIAS30.find(x=>x.d===parseInt(sel.value));
+    return d?d.titulo:'';
+  }
+  if(src.includes('Consultor')){
+    return window._conGancho?window._conGancho.split('\n')[0].trim():'';
+  }
+  return document.getElementById('car2-tema').value.trim();
+}
+
+async function car2Gerar(){
+  const tema=car2GetTema();
+  const nSlides=parseInt(document.getElementById('car2-nslides').value)||8;
+  if(!tema){
+    document.getElementById('car2-empty').innerHTML='<div class="erro-msg">Digite ou selecione o tema antes de gerar.</div>';
+    return;
+  }
+  load('btn-car2',true,'Fable 5 gerando conteúdo...');
+  document.getElementById('car2-empty').style.display='flex';
+  document.getElementById('car2-output').style.display='none';
+  document.getElementById('car2-empty').innerHTML='<div style="text-align:center;padding:40px 0;color:var(--cream-dim)"><div class="spinner" style="margin:0 auto 12px;width:22px;height:22px;border-color:var(--gold);border-top-color:transparent"></div><p style="font-size:13px;margin-bottom:4px">Fable 5 criando o conteúdo...</p><p style="font-size:11px;opacity:.6">Depois o Canvas renderiza os slides</p></div>';
+
+  const prompt=`Crie exatamente ${nSlides} slides para carrossel Instagram sobre: "${tema}".
+
+Padrao @thiagobarros. REGRAS:
+- Slide 1 (CAPA): titulo EM CAIXA ALTA, situacao ou dilema falado, MAX 6 palavras. Subtitulo: 1 frase curta.
+- Slide 2 (tipo intro): valida a situacao sem julgar. Titulo vazio, so texto, MAX 18 palavras.
+- Slides 3 a ${nSlides-1} (tipo dica): TITULO curtissimo (max 4 palavras, sem o numero, ex: "Come antes de sair") e TEXTO (max 20 palavras, exemplo concreto brasileiro).
+- Slide ${nSlides} (tipo cta): titulo = a verdade final que a pessoa quer salvar (max 12 palavras).
+
+JSON apenas, sem markdown:
+{"slides":[{"num":1,"tipo":"capa","titulo":"TITULO","subtitulo":"sub"},{"num":2,"tipo":"intro","titulo":"","texto":""},{"num":3,"tipo":"dica","titulo":"","texto":""},...,{"num":${nSlides},"tipo":"cta","titulo":""}],"legenda":"legenda completa com CTA e 3 hashtags"}`;
+
+  try{
+    const texto=await apiFable([{role:'user',content:prompt}],PERFIL,2000);
+    const jsonMatch=texto.match(/\{[\s\S]*\}/);
+    if(!jsonMatch)throw new Error('JSON não encontrado na resposta');
+    const data=JSON.parse(jsonMatch[0]);
+    car2SlidesGerados=data.slides;
+    car2LegendaGerada=data.legenda||'';
+    car2RenderSlides(data.slides);
+    document.getElementById('car2-legenda').textContent=car2LegendaGerada;
+    document.getElementById('car2-output-label').textContent='SLIDES · '+data.slides.length+'x · '+CAR2_ESTILOS[car2EstiloAtual].nome.toUpperCase();
+    document.getElementById('car2-empty').style.display='none';
+    document.getElementById('car2-output').style.display='block';
+  }catch(e){
+    document.getElementById('car2-empty').innerHTML='<div class="erro-msg">'+esc(e.message||'Erro ao gerar.')+'</div>';
+  }
+  load('btn-car2',false);
+}
+
+// ── Helpers de desenho ───────────────────────────────────────────────────
+let _grainCanvas=null;
+function car2Grain(ctx,S,alpha){
+  if(!_grainCanvas){
+    _grainCanvas=document.createElement('canvas');
+    _grainCanvas.width=_grainCanvas.height=256;
+    const g=_grainCanvas.getContext('2d');
+    const d=g.createImageData(256,256);
+    for(let i=0;i<d.data.length;i+=4){
+      const v=Math.random()*255;
+      d.data[i]=v;d.data[i+1]=v;d.data[i+2]=v;d.data[i+3]=22;
+    }
+    g.putImageData(d,0,0);
+  }
+  ctx.save();
+  ctx.globalAlpha=alpha;
+  const pat=ctx.createPattern(_grainCanvas,'repeat');
+  ctx.fillStyle=pat;
+  ctx.fillRect(0,0,S,S);
+  ctx.restore();
+}
+
+function car2LoadImg(src){
+  return new Promise(function(res,rej){
+    const i=new Image();
+    i.onload=function(){res(i);};
+    i.onerror=rej;
+    i.src=src;
+  });
+}
+
+function car2Linhas(ctx,text,maxW){
+  const ws=(text||'').split(' ');const lines=[];let line='';
+  for(const w of ws){
+    const t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}
+    else line=t;
+  }
+  if(line)lines.push(line);
+  return lines;
+}
+
+function car2FotoDuotone(ctx,img,x,y,w,h,tint,escurecer){
+  ctx.save();
+  ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  const r=Math.max(w/img.width,h/img.height);
+  const iw=img.width*r,ih=img.height*r;
+  try{ctx.filter='grayscale(1) contrast(1.12) brightness('+(escurecer?'0.82':'1.02')+')';}catch(e){}
+  ctx.drawImage(img,x+(w-iw)/2,y+(h-ih)/2,iw,ih);
+  try{ctx.filter='none';}catch(e){}
+  ctx.globalCompositeOperation='multiply';
+  ctx.fillStyle=tint;
+  ctx.globalAlpha=escurecer?0.55:0.32;
+  ctx.fillRect(x,y,w,h);
+  ctx.restore();
+}
+
+function car2Meta(ctx,S,esq,dir,y,cor){
+  ctx.save();
+  ctx.font='700 23px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='4px';}catch(e){}
+  ctx.fillStyle=cor;
+  ctx.textAlign='left';ctx.fillText(esq,72,y);
+  if(dir){ctx.textAlign='right';ctx.fillText(dir,S-72,y);}
+  ctx.restore();
+  ctx.textAlign='left';
+}
+
+// Distribuição de fotos: foto 0 na capa, demais alternadas nas dicas
+function car2MapaFotos(slides){
+  const mapa={};
+  if(car2Fotos.length===0)return mapa;
+  mapa[0]=car2Fotos[0];
+  let fi=1;
+  for(let i=1;i<slides.length&&fi<car2Fotos.length;i++){
+    if(slides[i].tipo==='dica'&&(i%2===0)){mapa[i]=car2Fotos[fi];fi++;}
+  }
+  // se sobrou foto e nenhuma dica par, coloca nas dicas ímpares
+  for(let i=1;i<slides.length&&fi<car2Fotos.length;i++){
+    if(slides[i].tipo==='dica'&&!mapa[i]){mapa[i]=car2Fotos[fi];fi++;}
+  }
+  return mapa;
+}
+
+function car2RenderSlides(slides){
+  const grid=document.getElementById('car2-slides-grid');
+  grid.innerHTML='';
+  const est=CAR2_ESTILOS[car2EstiloAtual]||CAR2_ESTILOS.revista;
+  const cor=car2CorAtual;
+  const total=slides.length;
+  const mapaFotos=car2MapaFotos(slides);
+
+  slides.forEach(function(slide,i){
+    const wrap=document.createElement('div');
+    wrap.className='car2-slide-thumb';
+    wrap.title='Slide '+slide.num+' — clique para baixar';
+    const canvas=document.createElement('canvas');
+    canvas.width=1080;canvas.height=1080;
+    canvas.style.cssText='width:100%;display:block;aspect-ratio:1';
+    const numLabel=document.createElement('div');
+    numLabel.className='car2-slide-num';
+    numLabel.textContent='SLIDE '+slide.num;
+    wrap.appendChild(canvas);wrap.appendChild(numLabel);
+    grid.appendChild(wrap);
+    car2DesenharSlide(canvas,slide,est,cor,mapaFotos[i]||null,total,i);
+    wrap.addEventListener('click',function(){car2BaixarSlide(canvas,slide.num);});
+  });
+}
+
+async function car2DesenharSlide(canvas,slide,est,cor,fotoB64,total,idx){
+  try{
+    await Promise.all([
+      document.fonts.load('400 100px Anton'),
+      document.fonts.load('italic 600 40px "Cormorant Garamond"'),
+      document.fonts.load('700 24px Inter'),
+      document.fonts.load('900 40px Inter')
+    ]);
+  }catch(e){}
+  let img=null;
+  if(fotoB64){try{img=await car2LoadImg(fotoB64);}catch(e){}}
+  const ctx=canvas.getContext('2d');
+  const S=1080;
+  ctx.clearRect(0,0,S,S);
+  const bg=est.bg||cor;
+  if(slide.tipo==='capa')car2DCapa(ctx,slide,est,cor,bg,img,S,total);
+  else if(slide.tipo==='cta')car2DCta(ctx,slide,est,cor,bg,S,total);
+  else if(slide.tipo==='intro')car2DIntro(ctx,slide,est,cor,bg,S,total);
+  else car2DDica(ctx,slide,est,cor,bg,img,S,total,idx);
+  car2Grain(ctx,S,est.grain);
+}
+
+// ── CAPA ──
+function car2DCapa(ctx,slide,est,cor,bg,img,S,total){
+  ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
+  const temFoto=!!img;
+  const accent=(est.nome==='Cartaz')?est.ink:cor;
+
+  if(temFoto){
+    // Foto ocupa faixa central com duotone, headline sobrepõe
+    const fy=176,fh=560;
+    car2FotoDuotone(ctx,img,0,fy,S,fh,(est.nome==='Noturno')?'#1A1610':cor,est.nome==='Noturno');
+    // hairlines acima e abaixo da foto
+    ctx.fillStyle=est.ink;
+    ctx.fillRect(72,fy-14,S-144,2);
+  } else {
+    // composição tipográfica: número de edição gigante cortado
+    ctx.save();
+    ctx.fillStyle=accent;
+    ctx.globalAlpha=(est.nome==='Cartaz')?0.14:0.1;
+    ctx.font='400 880px Anton,Impact,sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText('26',S+110,820);
+    ctx.restore();
+    ctx.textAlign='left';
+  }
+
+  // Masthead
+  car2Meta(ctx,S,'ANDRÉ ARAGÃO','NUTRIÇÃO REAL',96,est.ink);
+  ctx.fillStyle=est.ink;ctx.fillRect(72,116,S-144,3);
+
+  // Headline gigante na base, Anton
+  const titulo=(slide.titulo||'').toUpperCase();
+  let size=titulo.length>34?104:titulo.length>22?124:titulo.length>14?148:172;
+  ctx.font='400 '+size+'px Anton,Impact,sans-serif';
+  let lines=car2Linhas(ctx,titulo,S-144);
+  while(lines.length>3&&size>80){size-=10;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-144);}
+  const lh=size*1.04;
+  // bloco termina acima do rodapé; reserva espaço pro subtítulo
+  const blockEnd=(S-160)-(slide.subtitulo?150:0);
+  const startY=blockEnd-(lines.length-1)*lh;
+  // marcador de cor atrás da primeira linha
+  const fw=ctx.measureText(lines[0]).width;
+  ctx.fillStyle=accent;
+  ctx.globalAlpha=(est.nome==='Noturno')?0.85:1;
+  ctx.fillRect(66,startY-size*0.72,fw+24,size*0.84);
+  ctx.globalAlpha=1;
+  // texto
+  lines.forEach(function(l,i){
+    ctx.fillStyle=(i===0)?((est.nome==='Cartaz')?bg:est.inv===est.bg?est.ink:'#F6F1E6'):est.ink;
+    if(est.nome==='Noturno'&&i===0)ctx.fillStyle='#0C0B09';
+    if(est.nome==='Revista'&&i===0)ctx.fillStyle='#F6F1E6';
+    if(est.nome==='Cartaz'&&i===0)ctx.fillStyle=bg;
+    ctx.fillText(l,78,startY+i*lh);
+  });
+
+  // Subtítulo em Cormorant itálico
+  if(slide.subtitulo){
+    ctx.fillStyle=est.sec;
+    ctx.font='italic 600 42px "Cormorant Garamond",Georgia,serif';
+    const subY=startY+(lines.length-1)*lh+78;
+    car2Linhas(ctx,slide.subtitulo,S-180).slice(0,2).forEach(function(l,i){
+      ctx.fillText(l,78,Math.min(subY+i*54,S-128));
+    });
+  }
+
+  // Rodapé
+  ctx.fillStyle=est.ink;ctx.fillRect(72,S-92,S-144,2);
+  car2Meta(ctx,S,'@NUTRIANDREARAGAO','DESLIZE  →',S-48,est.ink);
+}
+
+// ── INTRO (slide 2): frase grande centrada estilo statement ──
+function car2DIntro(ctx,slide,est,cor,bg,S,total){
+  ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
+  const accent=(est.nome==='Cartaz')?est.ink:cor;
+  car2Meta(ctx,S,'ANDRÉ ARAGÃO','0'+slide.num+' — 0'+total,96,est.ink);
+  ctx.fillStyle=est.ink;ctx.fillRect(72,116,S-144,3);
+
+  // aspas decorativas Cormorant
+  ctx.fillStyle=accent;
+  ctx.font='italic 600 320px "Cormorant Garamond",Georgia,serif';
+  ctx.globalAlpha=(est.nome==='Cartaz')?0.25:0.18;
+  ctx.fillText('“',58,400);
+  ctx.globalAlpha=1;
+
+  // texto statement em Cormorant grande
+  const texto=slide.texto||slide.titulo||'';
+  ctx.fillStyle=est.ink;
+  let size=texto.length>90?58:texto.length>60?68:80;
+  ctx.font='italic 600 '+size+'px "Cormorant Garamond",Georgia,serif';
+  let lines=car2Linhas(ctx,texto,S-220);
+  while(lines.length>6&&size>44){size-=6;ctx.font='italic 600 '+size+'px "Cormorant Garamond",Georgia,serif';lines=car2Linhas(ctx,texto,S-220);}
+  const lh=size*1.32;
+  const blockH=lines.length*lh;
+  const y0=(S-blockH)/2+size*0.7;
+  lines.forEach(function(l,i){ctx.fillText(l,110,y0+i*lh);});
+
+  // linha de cor curta abaixo
+  ctx.fillStyle=accent;
+  ctx.fillRect(110,y0+lines.length*lh-size*0.3,120,6);
+
+  ctx.fillStyle=est.ink;ctx.fillRect(72,S-92,S-144,2);
+  car2Meta(ctx,S,'@NUTRIANDREARAGAO','',S-48,est.ink);
+}
+
+// ── DICA: dois layouts alternados ──
+function car2DDica(ctx,slide,est,cor,bg,img,S,total,idx){
+  const accent=(est.nome==='Cartaz')?est.ink:cor;
+  const dicaNum=slide.num-2; // dica 1, 2, 3...
+
+  if(img){
+    // LAYOUT FOTO: foto metade superior, conteúdo embaixo
+    ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
+    car2FotoDuotone(ctx,img,0,0,S,500,(est.nome==='Noturno')?'#1A1610':cor,est.nome==='Noturno');
+    // bloco numerado sobreposto na borda da foto
+    ctx.fillStyle=accent;
+    ctx.fillRect(72,440,120,120);
+    ctx.fillStyle=(est.nome==='Noturno')?'#0C0B09':'#F6F1E6';
+    ctx.font='400 72px Anton,Impact,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(String(dicaNum).padStart(2,'0'),132,524);
+    ctx.textAlign='left';
+    // título
+    ctx.fillStyle=est.ink;
+    const titulo=(slide.titulo||'').toUpperCase();
+    let size=titulo.length>24?72:88;
+    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
+    let lines=car2Linhas(ctx,titulo,S-144);
+    while(lines.length>2&&size>56){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-144);}
+    lines.forEach(function(l,i){ctx.fillText(l,72,660+i*size*1.06);});
+    // texto
+    if(slide.texto){
+      ctx.fillStyle=est.sec;
+      ctx.font='500 38px Inter,Arial,sans-serif';
+      const ty=660+lines.length*size*1.06+30;
+      car2Linhas(ctx,slide.texto,S-180).slice(0,4).forEach(function(l,i){ctx.fillText(l,72,ty+i*54);});
+    }
+    car2Meta(ctx,S,'@NUTRIANDREARAGAO','0'+slide.num+' — 0'+total,S-48,est.ink);
+    return;
+  }
+
+  if(idx%2===1){
+    // LAYOUT A: número monumental cortado à esquerda
+    ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
+    ctx.save();
+    ctx.fillStyle=accent;
+    ctx.globalAlpha=(est.nome==='Noturno')?0.92:1;
+    ctx.font='400 660px Anton,Impact,sans-serif';
+    ctx.fillText(String(dicaNum).padStart(2,'0'),-60,620);
+    ctx.restore();
+    car2Meta(ctx,S,'ANDRÉ ARAGÃO','0'+slide.num+' — 0'+total,96,est.ink);
+    ctx.fillStyle=est.ink;ctx.fillRect(72,116,S-144,3);
+    // título e texto calculados de baixo pra cima para nunca invadir o rodapé
+    ctx.fillStyle=est.ink;
+    const titulo=(slide.titulo||'').toUpperCase();
+    let size=titulo.length>24?80:titulo.length>14?96:112;
+    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
+    let lines=car2Linhas(ctx,titulo,S-144);
+    while(lines.length>2&&size>60){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-144);}
+    ctx.font='500 40px Inter,Arial,sans-serif';
+    const txtLines=slide.texto?car2Linhas(ctx,slide.texto,S-200).slice(0,3):[];
+    const txtH=txtLines.length>0?(txtLines.length*56+44):0;
+    const titEnd=(S-150)-txtH;
+    const tY=titEnd-(lines.length-1)*size*1.06;
+    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
+    lines.forEach(function(l,i){ctx.fillText(l,72,tY+i*size*1.06);});
+    if(txtLines.length){
+      ctx.fillStyle=est.sec;
+      ctx.font='500 40px Inter,Arial,sans-serif';
+      const ty=titEnd+64;
+      txtLines.forEach(function(l,i){ctx.fillText(l,72,ty+i*56);});
+    }
+    ctx.fillStyle=est.ink;ctx.fillRect(72,S-92,S-144,2);
+    car2Meta(ctx,S,'@NUTRIANDREARAGAO','',S-48,est.ink);
+  } else {
+    // LAYOUT B: bloco de cor no topo com número + título knockout
+    ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
+    const bh=470;
+    ctx.fillStyle=accent;ctx.fillRect(0,0,S,bh);
+    const knock=(est.nome==='Noturno')?'#0C0B09':'#F6F1E6';
+    // número pequeno no bloco
+    ctx.fillStyle=knock;
+    ctx.font='400 56px Anton,Impact,sans-serif';
+    ctx.fillText(String(dicaNum).padStart(2,'0')+'.',72,150);
+    // título knockout no bloco
+    const titulo=(slide.titulo||'').toUpperCase();
+    let size=titulo.length>24?76:92;
+    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
+    let lines=car2Linhas(ctx,titulo,S-144);
+    while(lines.length>3&&size>54){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-144);}
+    lines.forEach(function(l,i){ctx.fillText(l,72,250+i*size*1.05);});
+    // texto na área inferior
+    if(slide.texto){
+      ctx.fillStyle=est.ink;
+      ctx.font='500 44px Inter,Arial,sans-serif';
+      car2Linhas(ctx,slide.texto,S-200).slice(0,4).forEach(function(l,i){ctx.fillText(l,72,bh+130+i*62);});
+    }
+    ctx.fillStyle=est.ink;ctx.fillRect(72,S-92,S-144,2);
+    car2Meta(ctx,S,'@NUTRIANDREARAGAO','0'+slide.num+' — 0'+total,S-48,est.ink);
+  }
+}
+
+// ── CTA: fundo invertido, statement final ──
+function car2DCta(ctx,slide,est,cor,bg,S,total){
+  // fundo: tinta (inverso do estilo)
+  const fundo=(est.nome==='Noturno')?'#EFE7D5':est.blocoInk;
+  const texto=(est.nome==='Noturno')?'#0C0B09':'#F6F1E6';
+  const accent=(est.nome==='Cartaz')?cor:cor;
+  ctx.fillStyle=fundo;ctx.fillRect(0,0,S,S);
+
+  car2Meta(ctx,S,'ANDRÉ ARAGÃO','0'+slide.num+' — 0'+total,96,texto);
+  ctx.fillStyle=texto;ctx.fillRect(72,116,S-144,3);
+
+  // a verdade final em Anton
+  const titulo=(slide.titulo||slide.texto||'SALVA ESSE POST').toUpperCase();
+  let size=titulo.length>50?72:titulo.length>30?88:108;
+  ctx.font='400 '+size+'px Anton,Impact,sans-serif';
+  let lines=car2Linhas(ctx,titulo,S-160);
+  while(lines.length>5&&size>52){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-160);}
+  const lh=size*1.08;
+  const blockH=lines.length*lh;
+  const y0=(S-blockH)/2+size*0.55;
+  lines.forEach(function(l,i){
+    ctx.fillStyle=texto;
+    ctx.fillText(l,80,y0+i*lh);
+  });
+  // sublinha de cor na última linha
+  const lw=ctx.measureText(lines[lines.length-1]).width;
+  ctx.fillStyle=accent;
+  ctx.fillRect(80,y0+(lines.length-1)*lh+18,Math.min(lw,S-160),10);
+
+  // CTA explícito
+  ctx.fillStyle=accent;
+  ctx.font='700 30px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='3px';}catch(e){}
+  ctx.fillText('SALVA  ·  MANDA PRO AMIGO  ·  SEGUE',80,S-170);
+  try{ctx.letterSpacing='0px';}catch(e){}
+
+  ctx.fillStyle=texto;ctx.fillRect(72,S-112,S-144,2);
+  car2Meta(ctx,S,'@NUTRIANDREARAGAO','NUTRIANDREARAGAO.COM.BR',S-58,texto);
+}
+
+function car2BaixarSlide(canvas,num){
+  // Wait for images to load (500ms buffer)
+  setTimeout(function(){
+    const link=document.createElement('a');
+    link.download='andredre-slide-'+num+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  },300);
+}
+
+function car2BaixarTodos(){
+  const canvases=document.querySelectorAll('#car2-slides-grid canvas');
+  canvases.forEach(function(c,i){
+    setTimeout(function(){car2BaixarSlide(c,i+1);},i*400);
+  });
+}
+
+function car2CopiarLegenda(){
+  const el=document.getElementById('car2-legenda');
+  if(el)navigator.clipboard.writeText(el.textContent).then(function(){
+    const btn=document.querySelector('.car2-dl-btn + button') || document.querySelector('[onclick="car2CopiarLegenda()"]');
+  });
+}
+
+
+
+document.addEventListener('DOMContentLoaded', function(){renderGrid30();motorInit();conInit();car2Init();});
+</script>
+</body>
+</html>
