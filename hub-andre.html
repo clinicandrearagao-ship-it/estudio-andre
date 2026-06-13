@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema · André Aragão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,700;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F7F3EC;--paper2:#EDE7DA;--ink:#0E0C08;
+  --terra:#A84832;--terra2:#C4694F;--terra-dim:rgba(168,72,50,.09);--terra-border:rgba(168,72,50,.2);
+  --mid:#6B6050;--dim:#9A8F82;--line:rgba(14,12,8,.09);--line2:rgba(14,12,8,.14);
+  --white:#FFFFFF;--green:#4A8F6A;--red:#B05050;--blue:#3A6A8F;
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--ink);color:var(--paper);overflow:hidden}
+
+/* HUB LAYOUT */
+.hub{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sb{width:260px;background:rgba(14,12,8,.95);border-right:1px solid rgba(247,243,236,.07);display:flex;flex-direction:column;flex-shrink:0;backdrop-filter:blur(20px)}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(247,243,236,.07)}
+.sb-logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.sb-logo-dot{width:8px;height:8px;background:var(--terra);border-radius:50%}
+.sb-logo-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--paper)}
+.sb-logo-sub{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(247,243,236,.28);padding-left:18px}
+.sb-nav{flex:1;padding:12px 8px;overflow-y:auto}
+.sb-sec{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(247,243,236,.2);padding:10px 12px 5px}
+.nb{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:none;border:none;border-left:2px solid transparent;border-radius:0 4px 4px 0;cursor:pointer;color:rgba(247,243,236,.45);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;text-align:left;transition:all .15s}
+.nb:hover{color:rgba(247,243,236,.8);background:rgba(247,243,236,.04)}
+.nb.active{color:var(--paper);background:rgba(168,72,50,.12);border-left-color:var(--terra)}
+.nb svg{width:15px;height:15px;flex-shrink:0;opacity:.6}
+.nb.active svg{opacity:1}
+.sb-footer{padding:16px 20px;border-top:1px solid rgba(247,243,236,.07)}
+.sb-crn{font-size:8px;font-family:monospace;letter-spacing:1.5px;color:rgba(247,243,236,.2)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--paper)}
+
+/* TOPBAR */
+.topbar{padding:14px 24px;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--white)}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--ink)}
+.topbar-title em{font-style:italic;color:var(--terra)}
+.topbar-badge{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--terra);background:var(--terra-dim);border:1px solid var(--terra-border);padding:3px 10px;border-radius:20px}
+
+/* PANELS */
+.panel{display:none;flex:1;overflow:hidden}.panel.active{display:flex;flex-direction:column}
+
+/* INICIO */
+.inicio-content{padding:32px;flex:1;overflow-y:auto;background:var(--paper)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat{background:var(--white);border:1px solid var(--line2);border-radius:6px;padding:18px 20px}
+.stat-lbl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;color:var(--ink);line-height:1}
+.stat-sub{font-size:11px;color:var(--dim);margin-top:4px}
+.acao-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}
+.acao-main{background:var(--ink);border-radius:6px;padding:24px;display:flex;flex-direction:column;gap:12px}
+.acao-tag{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--terra)}
+.acao-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--paper);line-height:1.2}
+.acao-desc{font-size:12px;color:rgba(247,243,236,.45);line-height:1.6}
+.acao-side{display:flex;flex-direction:column;gap:10px}
+.acao-item{background:var(--white);border:1px solid var(--line2);border-radius:6px;padding:13px 15px;display:flex;align-items:center;gap:12px}
+.acao-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.links-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.link-card{background:var(--white);border:1px solid var(--line2);border-radius:6px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:10px}
+.link-card:hover{border-color:var(--terra-border);transform:translateY(-2px);box-shadow:0 4px 16px rgba(168,72,50,.08)}
+.link-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.link-card-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;color:var(--ink)}
+.link-card-desc{font-size:11.5px;color:var(--dim);line-height:1.5}
+
+/* IFRAME */
+.iframe-wrap{flex:1;position:relative;overflow:hidden}
+.iframe-wrap iframe{width:100%;height:100%;border:none;display:block}
+.iframe-loading{position:absolute;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.iframe-loading.hidden{display:none}
+.spin{width:20px;height:20px;border:2px solid var(--line2);border-top-color:var(--terra);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* BUTTON */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:4px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.btn-p{background:var(--terra);color:#fff}.btn-p:hover{background:var(--terra2)}
+.btn-g{background:transparent;border-color:var(--line2);color:var(--mid)}.btn-g:hover{border-color:var(--terra-border);color:var(--terra)}
+.btn-sm{padding:6px 12px;font-size:11px}
+
+/* TABLES */
+.tw{background:var(--white);border:1px solid var(--line2);border-radius:6px;overflow:hidden}
+.tw-h{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--paper2)}
+.tw-t{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:8.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);padding:10px 18px;border-bottom:1px solid var(--line);background:var(--paper);white-space:nowrap}
+td{padding:11px 18px;border-bottom:1px solid var(--line);font-size:13px;color:var(--mid);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--paper)}
+td strong{color:var(--ink)}
+.bx{display:inline-block;padding:2px 9px;border-radius:20px;font-size:8.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+
+@media(max-width:768px){
+  .sb{width:200px}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .acao-grid{grid-template-columns:1fr}
+  .links-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="hub">
+
+<!-- SIDEBAR -->
+<nav class="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-mark"><div class="sb-logo-dot"></div><div class="sb-logo-name">André Aragão</div></div>
+    <div class="sb-logo-sub">Sistema operacional</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Central</div>
+    <button class="nb active" data-panel="inicio" onclick="nav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      O que fazer agora
+    </button>
+    <div class="sb-sec">Conteúdo</div>
+    <button class="nb" data-panel="estudio" onclick="nav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Estúdio de Conteúdo
+    </button>
+    <div class="sb-sec">Negócio</div>
+    <button class="nb" data-panel="crm" onclick="nav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      CRM · Leads e Pacientes
+    </button>
+    <button class="nb" data-panel="captura" onclick="nav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Página de Captura
+    </button>
+  </div>
+  <div class="sb-footer"><div class="sb-crn">CRN 11-16678 · @nutriandrearagao</div></div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">O que fazer <em>agora.</em></div>
+    <span class="topbar-badge" id="topbar-badge">INÍCIO</span>
+  </div>
+
+  <!-- INÍCIO -->
+  <div class="panel active" id="panel-inicio">
+    <div class="inicio-content">
+      <div class="stats-row">
+        <div class="stat"><div class="stat-lbl">Leads este mês</div><div class="stat-val" id="s-leads">—</div><div class="stat-sub" id="s-leads-s">Carregando...</div></div>
+        <div class="stat"><div class="stat-lbl">Pacientes ativos</div><div class="stat-val" id="s-pacs">—</div><div class="stat-sub">Em acompanhamento</div></div>
+        <div class="stat"><div class="stat-lbl">Consultas hoje</div><div class="stat-val" id="s-hoje">—</div><div class="stat-sub" id="s-hoje-s">Verificando...</div></div>
+        <div class="stat"><div class="stat-lbl">Sem resposta</div><div class="stat-val" id="s-sr" style="color:var(--red)">—</div><div class="stat-sub">Leads aguardando</div></div>
+      </div>
+
+      <div class="acao-grid">
+        <div class="acao-main">
+          <div class="acao-tag">AÇÃO PRINCIPAL AGORA</div>
+          <div class="acao-title" id="acao-title">Carregando...</div>
+          <div class="acao-desc" id="acao-desc"></div>
+          <div id="acao-btn"></div>
+        </div>
+        <div class="acao-side" id="acao-side"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+        <div class="tw">
+          <div class="tw-h"><span class="tw-t">Leads sem resposta</span><button class="btn btn-g btn-sm" onclick="nav(document.querySelector('[data-panel=crm]'))">Ver CRM →</button></div>
+          <table><thead><tr><th>Nome</th><th>Objetivo</th><th>Há quanto tempo</th></tr></thead><tbody id="t-leads"></tbody></table>
+        </div>
+        <div class="tw">
+          <div class="tw-h"><span class="tw-t">Próximas consultas</span><button class="btn btn-g btn-sm" onclick="nav(document.querySelector('[data-panel=crm]'))">Ver agenda →</button></div>
+          <table><thead><tr><th>Paciente</th><th>Data</th><th>Status</th></tr></thead><tbody id="t-cons"></tbody></table>
+        </div>
+      </div>
+
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">Acessar módulos</div>
+      <div class="links-grid">
+        <div class="link-card" onclick="nav(document.querySelector('[data-panel=estudio]'))">
+          <div class="link-card-icon" style="background:rgba(168,72,50,.1)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A84832" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <div class="link-card-title">Estúdio</div>
+          <div class="link-card-desc">Consultor, Motor 180 dias, Carrosséis, Ganchos, DMs</div>
+        </div>
+        <div class="link-card" onclick="nav(document.querySelector('[data-panel=crm]'))">
+          <div class="link-card-icon" style="background:rgba(58,106,143,.1)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A6A8F" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          <div class="link-card-title">CRM</div>
+          <div class="link-card-desc">Leads, pacientes, agenda, IA clínica</div>
+        </div>
+        <div class="link-card" onclick="nav(document.querySelector('[data-panel=captura]'))">
+          <div class="link-card-icon" style="background:rgba(74,143,106,.1)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A8F6A" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <div class="link-card-title">Página de Captura</div>
+          <div class="link-card-desc">Link da bio do Instagram para captar leads</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTÚDIO -->
+  <div class="panel" id="panel-estudio">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;background:var(--paper)">
+      <div style="text-align:center;max-width:400px;padding:40px">
+        <div style="width:64px;height:64px;background:var(--terra-dim);border:1px solid var(--terra-border);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A84832" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:8px">Estúdio de Conteúdo</div>
+        <div style="font-size:13px;color:var(--mid);line-height:1.65;margin-bottom:24px">Consultor Fable 5, Motor 180 dias, Carrosséis, Pautas, Ganchos e Responder DMs.</div>
+        <a href="https://clinicandrearagao-ship-it.github.io/estudio-andre/index.html" target="_blank" class="btn btn-p" style="justify-content:center;width:100%;text-decoration:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Abrir Estúdio
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRM -->
+  <div class="panel" id="panel-crm">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;background:var(--paper)">
+      <div style="text-align:center;max-width:400px;padding:40px">
+        <div style="width:64px;height:64px;background:rgba(58,106,143,.1);border:1px solid rgba(58,106,143,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3A6A8F" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:8px">CRM · Leads e Pacientes</div>
+        <div style="font-size:13px;color:var(--mid);line-height:1.65;margin-bottom:24px">Pipeline de leads, prontuários, agenda semanal e IA Clínica com Fable 5.</div>
+        <a href="https://clinicandrearagao-ship-it.github.io/estudio-andre/crm-andre.html" target="_blank" class="btn btn-p" style="justify-content:center;width:100%;text-decoration:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Abrir CRM
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPTURA -->
+  <div class="panel" id="panel-captura">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;background:var(--paper)">
+      <div style="text-align:center;max-width:400px;padding:40px">
+        <div style="width:64px;height:64px;background:rgba(74,143,106,.1);border:1px solid rgba(74,143,106,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4A8F6A" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </div>
+        <div style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:8px">Página de Captura</div>
+        <div style="font-size:13px;color:var(--mid);line-height:1.65;margin-bottom:12px">Link da bio do Instagram. Leads preenchem e entram automaticamente no CRM.</div>
+        <div style="font-size:11px;color:var(--dim);background:var(--paper2);border-radius:4px;padding:8px 12px;margin-bottom:20px;font-family:monospace;word-break:break-all" id="captura-url-display">https://clinicandrearagao-ship-it.github.io/estudio-andre/captura-andre.html</div>
+        <div style="display:flex;gap:8px">
+          <a href="https://clinicandrearagao-ship-it.github.io/estudio-andre/captura-andre.html" target="_blank" class="btn btn-p" style="flex:1;justify-content:center;text-decoration:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Abrir
+          </a>
+          <button class="btn btn-g" onclick="navigator.clipboard.writeText('https://clinicandrearagao-ship-it.github.io/estudio-andre/captura-andre.html').then(function(){this.textContent='Copiado ✓';}.bind(this))" style="flex:1;justify-content:center">
+            Copiar link
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const SUPA_URL='https://azbysqomaxyipjhhckse.supabase.co';
+const SUPA_KEY='sb_publishable_HVJg03NXXMlprd5pbLp3sg_5AfQ5LDZ';
+
+// Supabase inline
+var DB=(function(){
+  function qb(t){var _f=[],_o=null,_s='*';var o={select:function(s){_s=s||'*';return o;},order:function(c,op){_o=c+(op&&op.ascending===false?' desc':' asc');return o;},eq:function(c,v){_f.push(c+'=eq.'+encodeURIComponent(v));return o;},then:function(cb){return r().then(cb);}};
+  function r(){var q=(_f.length?'?'+_f.join('&'):'');if(_o)q+=(q?'&':'?')+'order='+_o;if(_s&&_s!=='*')q+=(q?'&':'?')+'select='+encodeURIComponent(_s);return fetch(SUPA_URL+'/rest/v1/'+t+q,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept':'application/json'}}).then(function(r){return r.json().then(function(d){return{data:d};});}).catch(function(){return{data:[]};});}
+  return o;}return{from:function(t){return qb(t);}};})();
+
+var leads=[],pacs=[],cons=[];
+
+// Navegação
+var TITLES={inicio:'O que fazer <em>agora.</em>',estudio:'Estúdio de <em>Conteúdo</em>',crm:'CRM · Leads e <em>Pacientes</em>',captura:'Página de <em>Captura</em>'};
+var BADGES={inicio:'INÍCIO',estudio:'CONTEÚDO',crm:'NEGÓCIO',captura:'CAPTURA'};
+
+function nav(btn){
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('active');});
+  if(btn&&btn.classList)btn.classList.add('active');
+  var p=btn?btn.dataset.panel:'inicio';
+  document.querySelectorAll('.panel').forEach(function(el){el.classList.remove('active');});
+  var el=document.getElementById('panel-'+p);if(el)el.classList.add('active');
+  var tt=document.getElementById('topbar-title');if(tt)tt.innerHTML=TITLES[p]||p;
+  var tb=document.getElementById('topbar-badge');if(tb)tb.textContent=BADGES[p]||p.toUpperCase();
+
+}
+
+function hideLoad(id){var el=document.getElementById(id);if(el)el.classList.add('hidden');}
+
+// Data
+function fmtAgo(iso){if(!iso)return'—';var d=(new Date()-new Date(iso))/3600000;if(d<1)return'agora';if(d<24)return Math.floor(d)+'h atrás';return Math.floor(d/24)+'d atrás';}
+function fmtDt(iso){if(!iso)return'—';var d=new Date(iso);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var OBJ={emagrecimento:'Emagrecimento',mounjaro:'Mounjaro/GLP-1',ganho:'Ganho de massa',saude:'Saúde geral',esportiva:'Performance'};
+
+async function loadData(){
+  try{
+    var r=await Promise.all([
+      DB.from('leads').select('*').order('created_at',{ascending:false}),
+      DB.from('pacientes').select('*').order('nome'),
+      DB.from('consultas').select('*,pacientes(nome,whatsapp)').order('data_hora')
+    ]);
+    leads=r[0].data||[];pacs=r[1].data||[];cons=r[2].data||[];
+  }catch(e){console.warn('Supabase:',e);}
+  renderInicio();
+  // Auto-refresh 90s
+  setInterval(async function(){
+    try{var nr=await DB.from('leads').select('*').order('created_at',{ascending:false});var nv=(nr.data||[]).filter(function(l){return !leads.find(function(x){return x.id===l.id;});});if(nv.length){leads=nr.data||[];renderInicio();showToast(nv.length+' novo'+(nv.length>1?'s':'')+' lead chegou!');}}catch(e){}
+  },90000);
+}
+
+function showToast(msg){var t=document.createElement('div');t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--terra);color:#fff;padding:12px 20px;border-radius:4px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.2)';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},5000);}
+
+function renderInicio(){
+  var hoje=new Date(),hs=hoje.toISOString().split('T')[0];
+  var ini=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+  var lm=leads.filter(function(l){return new Date(l.created_at)>=ini;});
+  var pa=pacs.filter(function(p){return p.ativo;});
+  var ch=cons.filter(function(c){return c.data_hora&&c.data_hora.startsWith(hs);});
+  var lsr=leads.filter(function(l){return l.status==='novo';});
+  // KPIs
+  ste('s-leads',lm.length);ste('s-leads-s',lm.length===1?'1 novo lead':'novos leads');
+  ste('s-pacs',pa.length);
+  ste('s-hoje',ch.length);ste('s-hoje-s',ch.length===0?'Nenhuma hoje':ch.length+' consulta'+(ch.length>1?'s':''));
+  ste('s-sr',lsr.length);
+  // Ação principal
+  var at,ad,ab;
+  if(lsr.length>0){at=lsr.length+' lead'+(lsr.length>1?'s':'')+' sem resposta';ad='Cada hora reduz a chance de conversão. O melhor momento para responder é agora.';ab='<button class="btn btn-p btn-sm" onclick="nav(document.querySelector(\'[data-panel=crm]\'))">Abrir CRM →</button>';}
+  else if(leads.filter(function(l){return l.status==='agendado';}).length>0){at='Leads agendados esperando confirmar';ad='Você tem leads que avançaram no funil. Confirme as consultas no CRM.';ab='<button class="btn btn-p btn-sm" onclick="nav(document.querySelector(\'[data-panel=crm]\'))">Ver leads →</button>';}
+  else{at='Tudo em dia. Hora de criar conteúdo.';ad='Nenhum lead urgente. Use o Motor de 180 dias para manter a consistência.';ab='<button class="btn btn-p btn-sm" onclick="nav(document.querySelector(\'[data-panel=estudio]\'))">Abrir Estúdio →</button>';}
+  ste('acao-title',at);ste('acao-desc',ad);var be=document.getElementById('acao-btn');if(be)be.innerHTML=ab;
+  // Lado direito
+  var side=document.getElementById('acao-side');
+  if(side){
+    var items=[];
+    var prox=cons.filter(function(c){return c.data_hora&&new Date(c.data_hora)>hoje&&c.status==='agendada';}).slice(0,2);
+    prox.forEach(function(c){items.push({cor:'var(--blue)',t:(c.pacientes&&c.pacientes.nome)||'Consulta',s:fmtDt(c.data_hora)});});
+    var lp=leads.filter(function(l){return l.status==='paciente';});
+    var conv=leads.length?Math.round(lp.length/leads.length*100):0;
+    items.push({cor:'var(--green)',t:'Conversão: '+conv+'%',s:lp.length+' leads viraram pacientes'});
+    if(items.length<3)items.push({cor:'var(--terra)',t:'Captura ativa',s:'Novos leads entram automaticamente'});
+    side.innerHTML=items.map(function(i){return'<div class="acao-item"><div class="acao-dot" style="background:'+i.cor+'"></div><div style="flex:1"><div style="font-size:13px;color:var(--ink);font-weight:500">'+esc(i.t)+'</div><div style="font-size:10.5px;color:var(--dim);margin-top:2px">'+esc(i.s)+'</div></div></div>';}).join('');
+  }
+  // Tabelas
+  var tl=document.getElementById('t-leads');
+  if(tl)tl.innerHTML=lsr.slice(0,5).length?lsr.slice(0,5).map(function(l){return'<tr><td><strong>'+esc(l.nome)+'</strong></td><td>'+esc(OBJ[l.objetivo]||'—')+'</td><td style="color:'+(((new Date()-new Date(l.created_at))>86400000)?'var(--red)':'var(--mid)')+'">'+fmtAgo(l.created_at)+'</td></tr>';}).join(''):'<tr><td colspan="3" style="text-align:center;color:var(--dim);padding:16px">Nenhum lead pendente</td></tr>';
+  var tc=document.getElementById('t-cons');
+  if(tc){var pc=cons.filter(function(c){return c.data_hora&&new Date(c.data_hora)>hoje&&c.status==='agendada';}).slice(0,5);tc.innerHTML=pc.length?pc.map(function(c){return'<tr><td><strong>'+esc((c.pacientes&&c.pacientes.nome)||'—')+'</strong></td><td>'+fmtDt(c.data_hora)+'</td><td><span class="bx" style="background:rgba(58,106,143,.1);color:var(--blue)">'+c.status+'</span></td></tr>';}).join(''):'<tr><td colspan="3" style="text-align:center;color:var(--dim);padding:16px">Nenhuma consulta agendada</td></tr>';}
+}
+function ste(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+
+// Saudação dinâmica
+(function(){var h=new Date().getHours();var tt=document.getElementById('topbar-title');if(tt)tt.innerHTML=(h<12?'Bom dia, <em>André</em>':h<18?'Boa tarde, <em>André</em>':'Boa noite, <em>André</em>');})();
+
+loadData();
+</script>
+</body>
+</html>
