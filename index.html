@@ -2666,32 +2666,100 @@ JSON apenas, sem markdown:
 
 // ── Helpers de desenho ───────────────────────────────────────────────────
 let _grainCanvas=null;
-function car2Grain(ctx,S,alpha){
-  if(!_grainCanvas){
-    _grainCanvas=document.createElement('canvas');
-    _grainCanvas.width=_grainCanvas.height=256;
-    const g=_grainCanvas.getContext('2d');
-    const d=g.createImageData(256,256);
-    for(let i=0;i<d.data.length;i+=4){
-      const v=Math.random()*255;
-      d.data[i]=v;d.data[i+1]=v;d.data[i+2]=v;d.data[i+3]=22;
-    }
-    g.putImageData(d,0,0);
-  }
+function car2BuildEditor(slides){
+  const el=document.getElementById('car2-editor-slides');
+  if(!el)return;
+  const TIPO={capa:'Capa',intro:'Frase',dica:'Dica',cta:'Fechamento'};
+  el.innerHTML=slides.map(function(s,i){
+    return '<div style="background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:10px 13px;margin-bottom:8px">'+
+      '<div style="font-size:8.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Slide '+s.num+' · '+(TIPO[s.tipo]||s.tipo)+'</div>'+
+      (s.titulo!==undefined?'<input type="text" data-idx="'+i+'" data-field="titulo" value="'+esc(s.titulo||'')+'" placeholder="Título" style="width:100%;background:var(--surface);border:1px solid var(--line2);color:var(--cream);padding:6px 10px;border-radius:5px;font-family:Inter,sans-serif;font-size:12px;margin-bottom:5px;outline:none">':'')+
+      (s.tipo!=='cta'?'<textarea data-idx="'+i+'" data-field="texto" rows="2" placeholder="Texto" style="width:100%;background:var(--surface);border:1px solid var(--line2);color:var(--cream);padding:6px 10px;border-radius:5px;font-family:Inter,sans-serif;font-size:12px;resize:none;outline:none">'+esc(s.texto||s.subtitulo||'')+'</textarea>':'')+
+      '</div>';
+  }).join('');
+}
+
+function car2AplicarEdicoes(){
+  const inputs=document.querySelectorAll('#car2-editor-slides [data-idx]');
+  inputs.forEach(function(inp){
+    const idx=parseInt(inp.dataset.idx),field=inp.dataset.field;
+    if(car2SlidesGerados[idx])car2SlidesGerados[idx][field]=inp.value;
+  });
+  car2RenderSlides(car2SlidesGerados);
+}
+
+
+function car2RenderSlides(slides){
+  const grid=document.getElementById('car2-slides-grid');
+  grid.innerHTML='';
+  const est=CAR2_ESTILOS[car2EstiloAtual]||CAR2_ESTILOS.revista;
+  const cor=car2CorAtual;
+  const total=slides.length;
+  const mapaFotos=car2MapaFotos(slides);
+  slides.forEach(function(slide,i){
+    const wrap=document.createElement('div');
+    wrap.className='car2-slide-thumb';
+    wrap.title='Slide '+slide.num;
+    const canvas=document.createElement('canvas');
+    canvas.width=1080;canvas.height=1350;
+    canvas.style.cssText='width:100%;display:block;aspect-ratio:4/5';
+    const numLabel=document.createElement('div');
+    numLabel.className='car2-slide-num';
+    numLabel.textContent='SLIDE '+slide.num;
+    wrap.appendChild(canvas);wrap.appendChild(numLabel);
+    grid.appendChild(wrap);
+    car2DesenharSlide(canvas,slide,est,cor,mapaFotos[i]||null,total,i);
+    wrap.addEventListener('click',function(){car2BaixarSlide(canvas,slide.num);});
+  });
+  car2BuildEditor(slides);
+}
+
+async function car2DesenharSlide(canvas,slide,est,cor,fotoB64,total,idx){
+  await document.fonts.ready;
+  let img=null;
+  if(fotoB64){try{img=await car2LoadImg(fotoB64);}catch(e){}}
+  const ctx=canvas.getContext('2d');
+  const W=1080,H=1350;
+  ctx.clearRect(0,0,W,H);
+  const bg=est.bg||cor;
+  if(slide.tipo==='capa')await car2DCapa(ctx,slide,est,cor,bg,img,W,H,total);
+  else if(slide.tipo==='cta')await car2DCta(ctx,slide,est,cor,bg,W,H,total);
+  else if(slide.tipo==='intro')await car2DIntro(ctx,slide,est,cor,bg,W,H,total);
+  else await car2DDica(ctx,slide,est,cor,bg,img,W,H,total,idx);
+  car2Grain(ctx,W,H,est.grain);
+}
+
+function car2MapaFotos(slides){
+  const mapa={};
+  if(!car2Fotos||!car2Fotos.length)return mapa;
+  let fi=0;
+  slides.forEach(function(s,i){
+    if(fi<car2Fotos.length){mapa[i]=car2Fotos[fi];fi++;}
+  });
+  return mapa;
+}
+
+
+function car2Grain(ctx,W,H,alpha){
+  // Very subtle grain - draw small offscreen canvas
+  const a=Math.min(alpha||0.25,0.4);
+  const step=3;
   ctx.save();
-  ctx.globalAlpha=alpha;
-  const pat=ctx.createPattern(_grainCanvas,'repeat');
-  ctx.fillStyle=pat;
-  ctx.fillRect(0,0,S,S);
+  ctx.globalAlpha=a*0.12;
+  for(let x=0;x<W;x+=step){
+    for(let y=0;y<H;y+=step){
+      if(Math.random()<0.5){
+        ctx.fillStyle=Math.random()>0.5?'#fff':'#000';
+        ctx.fillRect(x,y,step,step);
+      }
+    }
+  }
   ctx.restore();
 }
 
 function car2LoadImg(src){
   return new Promise(function(res,rej){
-    const i=new Image();
-    i.onload=function(){res(i);};
-    i.onerror=rej;
-    i.src=src;
+    const i=new Image();i.onload=function(){res(i);};i.onerror=rej;i.src=src;
   });
 }
 
@@ -2702,405 +2770,345 @@ function car2Linhas(ctx,text,maxW){
     if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}
     else line=t;
   }
-  if(line)lines.push(line);
-  return lines;
+  if(line)lines.push(line);return lines;
 }
 
-function car2FotoDuotone(ctx,img,x,y,w,h,tint,escurecer){
-  ctx.save();
-  ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
-  const r=Math.max(w/img.width,h/img.height);
-  const iw=img.width*r,ih=img.height*r;
-  try{ctx.filter='grayscale(1) contrast(1.12) brightness('+(escurecer?'0.82':'1.02')+')';}catch(e){}
-  ctx.drawImage(img,x+(w-iw)/2,y+(h-ih)/2,iw,ih);
-  try{ctx.filter='none';}catch(e){}
-  ctx.globalCompositeOperation='multiply';
-  ctx.fillStyle=tint;
-  ctx.globalAlpha=escurecer?0.55:0.32;
-  ctx.fillRect(x,y,w,h);
-  ctx.restore();
+// ── PREMIUM DESIGN SYSTEM 1080×1350 ──────────────────────────────────────────
+// Design language: editorial restraint, asymmetric composition, 
+// breathing space, typographic hierarchy, professional nutrition brand.
+
+const PREMIUM_COLORS={
+  revista:{bg:'#F5F0E8',ink:'#0D0B08',mid:'rgba(13,11,8,.45)',line:'rgba(13,11,8,.12)',inv:'#0D0B08',invMid:'rgba(245,240,232,.5)'},
+  cartaz:{bg:'#0D0B08',ink:'#F5F0E8',mid:'rgba(245,240,232,.45)',line:'rgba(245,240,232,.1)',inv:'#F5F0E8',invMid:'rgba(13,11,8,.5)'},
+  noturno:{bg:'#1A1612',ink:'#EDE7DA',mid:'rgba(237,231,218,.45)',line:'rgba(237,231,218,.1)',inv:'#EDE7DA',invMid:'rgba(26,22,18,.5)'}
+};
+
+function car2SetFont(ctx,size,family,weight,style){
+  style=style||'normal';weight=weight||'400';
+  ctx.font=style+' '+weight+' '+size+'px '+family+',serif';
 }
 
-function car2Meta(ctx,S,esq,dir,y,cor){
-  ctx.save();
-  ctx.font='700 23px Inter,Arial,sans-serif';
-  try{ctx.letterSpacing='4px';}catch(e){}
-  ctx.fillStyle=cor;
-  ctx.textAlign='left';ctx.fillText(esq,72,y);
-  if(dir){ctx.textAlign='right';ctx.fillText(dir,S-72,y);}
-  ctx.restore();
+function car2DrawLine(ctx,x1,y1,x2,y2,color,width){
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width||1;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
+}
+
+function car2Footer(ctx,W,H,clr,accent,slideNum,total){
+  // Thin separator line
+  car2DrawLine(ctx,60,H-80,W-60,H-80,clr.line,1);
+  // Handle left
+  ctx.fillStyle=clr.mid;
+  ctx.font='500 18px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='2px';}catch(e){}
   ctx.textAlign='left';
+  ctx.fillText('@NUTRIANDREARAGAO',60,H-46);
+  // Slide counter right
+  ctx.fillStyle=accent;
+  ctx.font='600 18px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='1px';}catch(e){}
+  ctx.textAlign='right';
+  ctx.fillText(String(slideNum).padStart(2,'0')+' / '+String(total).padStart(2,'0'),W-60,H-46);
+  ctx.textAlign='left';
+  try{ctx.letterSpacing='0px';}catch(e){}
 }
 
-// Distribuição de fotos: foto 0 na capa, demais alternadas nas dicas
-function car2MapaFotos(slides){
-  const mapa={};
-  if(car2Fotos.length===0)return mapa;
-  mapa[0]=car2Fotos[0];
-  let fi=1;
-  for(let i=1;i<slides.length&&fi<car2Fotos.length;i++){
-    if(slides[i].tipo==='dica'&&(i%2===0)){mapa[i]=car2Fotos[fi];fi++;}
-  }
-  // se sobrou foto e nenhuma dica par, coloca nas dicas ímpares
-  for(let i=1;i<slides.length&&fi<car2Fotos.length;i++){
-    if(slides[i].tipo==='dica'&&!mapa[i]){mapa[i]=car2Fotos[fi];fi++;}
-  }
-  return mapa;
-}
-
-function car2RenderSlides(slides){
-  const grid=document.getElementById('car2-slides-grid');
-  grid.innerHTML='';
-  const est=CAR2_ESTILOS[car2EstiloAtual]||CAR2_ESTILOS.revista;
-  const cor=car2CorAtual;
-  const total=slides.length;
-  const mapaFotos=car2MapaFotos(slides);
-
-  slides.forEach(function(slide,i){
-    const wrap=document.createElement('div');
-    wrap.className='car2-slide-thumb';
-    wrap.title='Slide '+slide.num+' — clique para baixar';
-    const canvas=document.createElement('canvas');
-    canvas.width=1080;canvas.height=1080;
-    canvas.style.cssText='width:100%;display:block;aspect-ratio:1';
-    const numLabel=document.createElement('div');
-    numLabel.className='car2-slide-num';
-    numLabel.textContent='SLIDE '+slide.num;
-    wrap.appendChild(canvas);wrap.appendChild(numLabel);
-    grid.appendChild(wrap);
-    car2DesenharSlide(canvas,slide,est,cor,mapaFotos[i]||null,total,i);
-    wrap.addEventListener('click',function(){car2BaixarSlide(canvas,slide.num);});
-  });
-
-  // Build inline editor
-  car2BuildEditor(slides);
-}
-
-function car2BuildEditor(slides){
-  const el=document.getElementById('car2-editor-slides');
-  if(!el)return;
-  const TIPO_LABEL={capa:'Capa',intro:'Frase de impacto',dica:'Dica',cta:'Fechamento'};
-  el.innerHTML=slides.map(function(s,i){
-    const label=TIPO_LABEL[s.tipo]||s.tipo;
-    const tituloVal=s.titulo||'';
-    const textoVal=s.texto||s.subtitulo||'';
-    return '<div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px 14px">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
-        '<span style="font-size:8px;font-weight:700;font-family:monospace;letter-spacing:1.5px;text-transform:uppercase;background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-border);padding:2px 8px;border-radius:4px">'+label.toUpperCase()+'</span>'+
-        '<span style="font-size:9px;font-family:monospace;color:var(--cream-dim)">SLIDE '+s.num+'</span>'+
-      '</div>'+
-      (tituloVal||s.tipo==='capa'||s.tipo==='dica'||s.tipo==='cta'?
-        '<input type="text" data-idx="'+i+'" data-field="titulo" value="'+esc(tituloVal)+'" placeholder="Título" style="width:100%;background:var(--surface);border:1px solid var(--line2);color:var(--cream);padding:7px 10px;border-radius:6px;font-family:Inter,sans-serif;font-size:12px;margin-bottom:6px;outline:none">':'')+
-      (s.tipo!=='cta'?
-        '<textarea data-idx="'+i+'" data-field="texto" rows="2" placeholder="Texto de apoio" style="width:100%;background:var(--surface);border:1px solid var(--line2);color:var(--cream);padding:7px 10px;border-radius:6px;font-family:Inter,sans-serif;font-size:12px;resize:vertical;outline:none">'+esc(textoVal)+'</textarea>':'')+
-      '</div>';
-  }).join('');
-}
-
-function car2AplicarEdicoes(){
-  const inputs=document.querySelectorAll('#car2-editor-slides [data-idx]');
-  inputs.forEach(function(inp){
-    const idx=parseInt(inp.dataset.idx);
-    const field=inp.dataset.field;
-    if(car2SlidesGerados[idx])car2SlidesGerados[idx][field]=inp.value;
-  });
-  car2RenderSlides(car2SlidesGerados);
-}
-
-async function car2DesenharSlide(canvas,slide,est,cor,fotoB64,total,idx){
-  try{
-    await Promise.all([
-      document.fonts.load('400 100px Anton'),
-      document.fonts.load('italic 600 40px "Cormorant Garamond"'),
-      document.fonts.load('700 24px Inter'),
-      document.fonts.load('900 40px Inter')
-    ]);
-  }catch(e){}
-  let img=null;
-  if(fotoB64){try{img=await car2LoadImg(fotoB64);}catch(e){}}
-  const ctx=canvas.getContext('2d');
-  const S=1080;
-  ctx.clearRect(0,0,S,S);
-  const bg=est.bg||cor;
-  if(slide.tipo==='capa')car2DCapa(ctx,slide,est,cor,bg,img,S,total);
-  else if(slide.tipo==='cta')car2DCta(ctx,slide,est,cor,bg,S,total);
-  else if(slide.tipo==='intro')car2DIntro(ctx,slide,est,cor,bg,S,total);
-  else car2DDica(ctx,slide,est,cor,bg,img,S,total,idx);
-  car2Grain(ctx,S,est.grain);
-}
-
-// ── CAPA ──
-function car2DCapa(ctx,slide,est,cor,bg,img,S,total){
-  ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
-  const accent=(est.nome==='Cartaz')?est.ink:cor;
-  const titulo=(slide.titulo||'').toUpperCase();
+// ── CAPA ─────────────────────────────────────────────────────────────────────
+async function car2DCapa(ctx,slide,est,cor,bg,img,W,H,total){
+  const clr=PREMIUM_COLORS[est.nome.toLowerCase()]||PREMIUM_COLORS.revista;
+  ctx.fillStyle=bg||clr.bg;ctx.fillRect(0,0,W,H);
 
   if(img){
-    // LAYOUT COM FOTO: foto ocupa metade direita, texto na esquerda
-    const fotoX=Math.round(S*0.46);
-    const ratio=Math.max((S-fotoX)/img.width,S/img.height);
+    // Full bleed photo, dark overlay, text bottom-anchored
+    const ratio=Math.max(W/img.width,H/img.height);
     const iw=img.width*ratio,ih=img.height*ratio;
-    ctx.save();
-    ctx.beginPath();ctx.rect(fotoX,0,S-fotoX,S);ctx.clip();
-    ctx.drawImage(img,fotoX+(S-fotoX-iw)/2,(S-ih)/2,iw,ih);
-    ctx.restore();
-    // Gradiente de fusão da foto para o fundo
-    const grd=ctx.createLinearGradient(fotoX,0,fotoX+280,0);
-    grd.addColorStop(0,bg);grd.addColorStop(1,bg+'00');
-    ctx.fillStyle=grd;ctx.fillRect(fotoX,0,280,S);
-    ctx.fillStyle=accent;ctx.fillRect(fotoX-3,0,3,S);
-    // Masthead
-    const colW=fotoX-80;
-    ctx.fillStyle=est.ink;ctx.fillRect(60,70,colW,2);
-    ctx.fillStyle=cor;ctx.font='700 19px Inter,sans-serif';
-    try{ctx.letterSpacing='3px';}catch(e){}
-    ctx.textAlign='left';ctx.fillText('ANDRÉ ARAGÃO',60,105);
-    try{ctx.letterSpacing='0px';}catch(e){}
-    ctx.fillStyle=est.ink;ctx.fillRect(60,118,colW,1);
-    // Título
-    let size=titulo.length>22?96:titulo.length>14?116:138;
-    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
-    let lines=car2Linhas(ctx,titulo,colW);
-    while(lines.length>5&&size>70){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,colW);}
-    const lh=size*1.06;
-    const fw1=Math.min(ctx.measureText(lines[0]).width,colW);
-    ctx.fillStyle=accent;ctx.fillRect(54,165,fw1+16,size*0.9);
-    lines.forEach(function(l,i){
-      ctx.fillStyle=i===0?((est.nome==='Noturno')?'#0C0B09':'#F6F1E6'):est.ink;
-      if(est.nome==='Cartaz'&&i===0)ctx.fillStyle=bg;
-      ctx.fillText(l,60,165+size*0.82+i*lh);
-    });
-    if(slide.subtitulo){
-      ctx.fillStyle=est.sec;
-      ctx.font='italic 600 32px "Cormorant Garamond",Georgia,serif';
-      const subY=165+lines.length*lh+38;
-      car2Linhas(ctx,slide.subtitulo,colW).slice(0,3).forEach(function(l,i){
-        ctx.fillText(l,60,Math.min(subY+i*44,S-110));
-      });
-    }
-    ctx.fillStyle=est.ink;ctx.fillRect(60,S-90,colW,2);
-    ctx.fillStyle=est.handle;ctx.font='700 18px Inter,sans-serif';
-    try{ctx.letterSpacing='2px';}catch(e){}
-    ctx.fillText('@NUTRIANDREARAGAO',60,S-52);
-    try{ctx.letterSpacing='0px';}catch(e){}
-    ctx.textAlign='right';ctx.fillStyle=est.sec;ctx.font='700 17px Inter,sans-serif';
-    ctx.fillText('DESLIZE →',fotoX-20,S-52);
-    ctx.textAlign='left';
+    ctx.drawImage(img,(W-iw)/2,(H-ih)/2,iw,ih);
+    // Gradient from bottom
+    const grd=ctx.createLinearGradient(0,H*0.3,0,H);
+    grd.addColorStop(0,'rgba(13,11,8,0)');
+    grd.addColorStop(0.6,'rgba(13,11,8,0.78)');
+    grd.addColorStop(1,'rgba(13,11,8,0.95)');
+    ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+    // Text anchored bottom
+    const textClr={ink:'#F5F0E8',mid:'rgba(245,240,232,.55)',line:'rgba(245,240,232,.2)',accent:cor};
+    _car2CapaText(ctx,slide,W,H,textClr,cor,total,true);
   } else {
-    // LAYOUT SEM FOTO: composição tipográfica full-width
-    ctx.save();
-    ctx.fillStyle=accent;ctx.globalAlpha=0.08;
-    ctx.font='400 820px Anton,Impact,sans-serif';
-    ctx.textAlign='right';ctx.fillText('A',S+80,840);
-    ctx.restore();ctx.textAlign='left';
-    ctx.fillStyle=est.ink;ctx.fillRect(60,70,S-120,2);
-    ctx.fillStyle=cor;ctx.font='700 20px Inter,sans-serif';
-    try{ctx.letterSpacing='4px';}catch(e){}
-    ctx.fillText('ANDRÉ ARAGÃO',60,106);
-    ctx.fillStyle=est.sec;ctx.fillText('NUTRICIONISTA',346,106);
-    try{ctx.letterSpacing='0px';}catch(e){}
-    ctx.fillStyle=est.ink;ctx.fillRect(60,120,S-120,1);
-    let size=titulo.length>30?108:titulo.length>20?130:titulo.length>12?156:178;
-    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
-    let lines=car2Linhas(ctx,titulo,S-120);
-    while(lines.length>4&&size>84){size-=10;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-120);}
-    const lh=size*1.04;
-    const blockEnd=(S-150)-(slide.subtitulo?130:0);
-    const startY=blockEnd-(lines.length-1)*lh;
-    const fw1=Math.min(ctx.measureText(lines[0]).width,S-120);
-    ctx.fillStyle=accent;ctx.fillRect(54,startY-size*0.76,fw1+20,size*0.88);
-    lines.forEach(function(l,i){
-      ctx.fillStyle=i===0?((est.nome==='Noturno')?'#0C0B09':'#F6F1E6'):est.ink;
-      if(est.nome==='Cartaz'&&i===0)ctx.fillStyle=bg;
-      ctx.fillText(l,60,startY+i*lh);
-    });
-    if(slide.subtitulo){
-      ctx.fillStyle=est.sec;ctx.font='italic 600 40px "Cormorant Garamond",Georgia,serif';
-      const subY=startY+lines.length*lh+42;
-      car2Linhas(ctx,slide.subtitulo,S-140).slice(0,2).forEach(function(l,i){
-        ctx.fillText(l,60,Math.min(subY+i*52,S-110));
-      });
-    }
-    ctx.fillStyle=est.ink;ctx.fillRect(60,S-90,S-120,2);
-    ctx.fillStyle=est.handle;ctx.font='700 20px Inter,sans-serif';
-    try{ctx.letterSpacing='2px';}catch(e){}
-    ctx.fillText('@NUTRIANDREARAGAO',60,S-52);
-    ctx.textAlign='right';ctx.fillStyle=est.sec;ctx.font='700 18px Inter,sans-serif';
-    ctx.fillText('DESLIZE →',S-60,S-52);
-    ctx.textAlign='left';
-    try{ctx.letterSpacing='0px';}catch(e){}
+    const textClr={ink:clr.ink,mid:clr.mid,line:clr.line,accent:cor};
+    _car2CapaText(ctx,slide,W,H,textClr,cor,total,false);
   }
 }
 
-// ── INTRO (slide 2): frase grande centrada estilo statement ──
-function car2DIntro(ctx,slide,est,cor,bg,S,total){
-  ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
-  const accent=(est.nome==='Cartaz')?est.ink:cor;
-  car2Meta(ctx,S,'ANDRÉ ARAGÃO','0'+slide.num+' — 0'+total,96,est.ink);
-  ctx.fillStyle=est.ink;ctx.fillRect(72,116,S-144,3);
+function _car2CapaText(ctx,slide,W,H,clr,accent,total,onPhoto){
+  const titulo=(slide.titulo||'').toUpperCase();
+  const sub=slide.subtitulo||'';
 
-  // aspas decorativas Cormorant
-  ctx.fillStyle=accent;
-  ctx.font='italic 600 320px "Cormorant Garamond",Georgia,serif';
-  ctx.globalAlpha=(est.nome==='Cartaz')?0.25:0.18;
-  ctx.fillText('“',58,400);
-  ctx.globalAlpha=1;
-
-  // texto statement em Cormorant grande
-  const texto=slide.texto||slide.titulo||'';
-  ctx.fillStyle=est.ink;
-  let size=texto.length>90?58:texto.length>60?68:80;
-  ctx.font='italic 600 '+size+'px "Cormorant Garamond",Georgia,serif';
-  let lines=car2Linhas(ctx,texto,S-220);
-  while(lines.length>6&&size>44){size-=6;ctx.font='italic 600 '+size+'px "Cormorant Garamond",Georgia,serif';lines=car2Linhas(ctx,texto,S-220);}
-  const lh=size*1.32;
-  const blockH=lines.length*lh;
-  const y0=(S-blockH)/2+size*0.7;
-  lines.forEach(function(l,i){ctx.fillText(l,110,y0+i*lh);});
-
-  // linha de cor curta abaixo
-  ctx.fillStyle=accent;
-  ctx.fillRect(110,y0+lines.length*lh-size*0.3,120,6);
-
-  ctx.fillStyle=est.ink;ctx.fillRect(72,S-92,S-144,2);
-  car2Meta(ctx,S,'@NUTRIANDREARAGAO','',S-48,est.ink);
-}
-
-// ── DICA: dois layouts alternados ──
-function car2DDica(ctx,slide,est,cor,bg,img,S,total,idx){
-  const accent=(est.nome==='Cartaz')?est.ink:cor;
-  const dicaNum=slide.num-2; // dica 1, 2, 3...
-
-  if(img){
-    // LAYOUT FOTO: foto metade superior, conteúdo embaixo
-    ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
-    car2FotoDuotone(ctx,img,0,0,S,500,(est.nome==='Noturno')?'#1A1610':cor,est.nome==='Noturno');
-    // bloco numerado sobreposto na borda da foto
-    ctx.fillStyle=accent;
-    ctx.fillRect(72,440,120,120);
-    ctx.fillStyle=(est.nome==='Noturno')?'#0C0B09':'#F6F1E6';
-    ctx.font='400 72px Anton,Impact,sans-serif';
-    ctx.textAlign='center';
-    ctx.fillText(String(dicaNum).padStart(2,'0'),132,524);
-    ctx.textAlign='left';
-    // título
-    ctx.fillStyle=est.ink;
-    const titulo=(slide.titulo||'').toUpperCase();
-    let size=titulo.length>24?72:88;
-    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
-    let lines=car2Linhas(ctx,titulo,S-144);
-    while(lines.length>2&&size>56){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-144);}
-    lines.forEach(function(l,i){ctx.fillText(l,72,660+i*size*1.06);});
-    // texto
-    if(slide.texto){
-      ctx.fillStyle=est.sec;
-      ctx.font='500 38px Inter,Arial,sans-serif';
-      const ty=660+lines.length*size*1.06+30;
-      car2Linhas(ctx,slide.texto,S-180).slice(0,4).forEach(function(l,i){ctx.fillText(l,72,ty+i*54);});
-    }
-    car2Meta(ctx,S,'@NUTRIANDREARAGAO','0'+slide.num+' — 0'+total,S-48,est.ink);
-    return;
-  }
-
-  if(idx%2===1){
-    // LAYOUT A: número monumental cortado à esquerda
-    ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
-    ctx.save();
-    ctx.fillStyle=accent;
-    ctx.globalAlpha=(est.nome==='Noturno')?0.92:1;
-    ctx.font='400 660px Anton,Impact,sans-serif';
-    ctx.fillText(String(dicaNum).padStart(2,'0'),-60,620);
-    ctx.restore();
-    car2Meta(ctx,S,'ANDRÉ ARAGÃO','0'+slide.num+' — 0'+total,96,est.ink);
-    ctx.fillStyle=est.ink;ctx.fillRect(72,116,S-144,3);
-    // título e texto calculados de baixo pra cima para nunca invadir o rodapé
-    ctx.fillStyle=est.ink;
-    const titulo=(slide.titulo||'').toUpperCase();
-    let size=titulo.length>24?80:titulo.length>14?96:112;
-    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
-    let lines=car2Linhas(ctx,titulo,S-144);
-    while(lines.length>2&&size>60){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-144);}
-    ctx.font='500 40px Inter,Arial,sans-serif';
-    const txtLines=slide.texto?car2Linhas(ctx,slide.texto,S-200).slice(0,3):[];
-    const txtH=txtLines.length>0?(txtLines.length*56+44):0;
-    const titEnd=(S-150)-txtH;
-    const tY=titEnd-(lines.length-1)*size*1.06;
-    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
-    lines.forEach(function(l,i){ctx.fillText(l,72,tY+i*size*1.06);});
-    if(txtLines.length){
-      ctx.fillStyle=est.sec;
-      ctx.font='500 40px Inter,Arial,sans-serif';
-      const ty=titEnd+64;
-      txtLines.forEach(function(l,i){ctx.fillText(l,72,ty+i*56);});
-    }
-    ctx.fillStyle=est.ink;ctx.fillRect(72,S-92,S-144,2);
-    car2Meta(ctx,S,'@NUTRIANDREARAGAO','',S-48,est.ink);
-  } else {
-    // LAYOUT B: bloco de cor no topo com número + título knockout
-    ctx.fillStyle=bg;ctx.fillRect(0,0,S,S);
-    const bh=470;
-    ctx.fillStyle=accent;ctx.fillRect(0,0,S,bh);
-    const knock=(est.nome==='Noturno')?'#0C0B09':'#F6F1E6';
-    // número pequeno no bloco
-    ctx.fillStyle=knock;
-    ctx.font='400 56px Anton,Impact,sans-serif';
-    ctx.fillText(String(dicaNum).padStart(2,'0')+'.',72,150);
-    // título knockout no bloco
-    const titulo=(slide.titulo||'').toUpperCase();
-    let size=titulo.length>24?76:92;
-    ctx.font='400 '+size+'px Anton,Impact,sans-serif';
-    let lines=car2Linhas(ctx,titulo,S-144);
-    while(lines.length>3&&size>54){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-144);}
-    lines.forEach(function(l,i){ctx.fillText(l,72,250+i*size*1.05);});
-    // texto na área inferior
-    if(slide.texto){
-      ctx.fillStyle=est.ink;
-      ctx.font='500 44px Inter,Arial,sans-serif';
-      car2Linhas(ctx,slide.texto,S-200).slice(0,4).forEach(function(l,i){ctx.fillText(l,72,bh+130+i*62);});
-    }
-    ctx.fillStyle=est.ink;ctx.fillRect(72,S-92,S-144,2);
-    car2Meta(ctx,S,'@NUTRIANDREARAGAO','0'+slide.num+' — 0'+total,S-48,est.ink);
-  }
-}
-
-// ── CTA: fundo invertido, statement final ──
-function car2DCta(ctx,slide,est,cor,bg,S,total){
-  // fundo: tinta (inverso do estilo)
-  const fundo=(est.nome==='Noturno')?'#EFE7D5':est.blocoInk;
-  const texto=(est.nome==='Noturno')?'#0C0B09':'#F6F1E6';
-  const accent=(est.nome==='Cartaz')?cor:cor;
-  ctx.fillStyle=fundo;ctx.fillRect(0,0,S,S);
-
-  car2Meta(ctx,S,'ANDRÉ ARAGÃO','0'+slide.num+' — 0'+total,96,texto);
-  ctx.fillStyle=texto;ctx.fillRect(72,116,S-144,3);
-
-  // a verdade final em Anton
-  const titulo=(slide.titulo||slide.texto||'SALVA ESSE POST').toUpperCase();
-  let size=titulo.length>50?72:titulo.length>30?88:108;
-  ctx.font='400 '+size+'px Anton,Impact,sans-serif';
-  let lines=car2Linhas(ctx,titulo,S-160);
-  while(lines.length>5&&size>52){size-=8;ctx.font='400 '+size+'px Anton,Impact,sans-serif';lines=car2Linhas(ctx,titulo,S-160);}
-  const lh=size*1.08;
-  const blockH=lines.length*lh;
-  const y0=(S-blockH)/2+size*0.55;
-  lines.forEach(function(l,i){
-    ctx.fillStyle=texto;
-    ctx.fillText(l,80,y0+i*lh);
-  });
-  // sublinha de cor na última linha
-  const lw=ctx.measureText(lines[lines.length-1]).width;
-  ctx.fillStyle=accent;
-  ctx.fillRect(80,y0+(lines.length-1)*lh+18,Math.min(lw,S-160),10);
-
-  // CTA explícito
-  ctx.fillStyle=accent;
-  ctx.font='700 30px Inter,Arial,sans-serif';
-  try{ctx.letterSpacing='3px';}catch(e){}
-  ctx.fillText('SALVA  ·  MANDA PRO AMIGO  ·  SEGUE',80,S-170);
+  // Top eyebrow
+  const eyebrowY=onPhoto?80:72;
+  ctx.fillStyle=clr.mid;
+  ctx.font='500 17px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='3.5px';}catch(e){}
+  ctx.textAlign='left';
+  ctx.fillText('NUTRIÇÃO CLÍNICA E ESPORTIVA',60,eyebrowY);
   try{ctx.letterSpacing='0px';}catch(e){}
 
-  ctx.fillStyle=texto;ctx.fillRect(72,S-112,S-144,2);
-  car2Meta(ctx,S,'@NUTRIANDREARAGAO','NUTRIANDREARAGAO.COM.BR',S-58,texto);
+  // Thin horizontal rule
+  car2DrawLine(ctx,60,eyebrowY+18,W-60,eyebrowY+18,clr.line,0.8);
+
+  // Giant title — bottom third of card
+  const maxW=W-120;
+  let sz=titulo.length>28?96:titulo.length>18?118:titulo.length>12?140:160;
+  ctx.font='700 '+sz+'px "Cormorant Garamond","Georgia",serif';
+  let titleLines=car2Linhas(ctx,titulo,maxW);
+  while(titleLines.length>4&&sz>72){sz-=8;ctx.font='700 '+sz+'px "Cormorant Garamond","Georgia",serif';titleLines=car2Linhas(ctx,titulo,maxW);}
+  
+  const lh=sz*1.05;
+  const blockH=titleLines.length*lh+(sub?sz*0.7:0);
+  const titleBottom=H-130;
+  const titleTop=titleBottom-blockH+sz*0.8;
+
+  // Accent bar — vertical, left edge, spans title height
+  ctx.fillStyle=accent;
+  ctx.fillRect(60,titleTop-sz*0.7,3,blockH+sz*0.2);
+
+  // Title text
+  ctx.fillStyle=clr.ink;
+  titleLines.forEach(function(l,i){
+    // First word italic style on first line
+    if(i===0){
+      ctx.font='italic 700 '+sz+'px "Cormorant Garamond","Georgia",serif';
+    } else {
+      ctx.font='700 '+sz+'px "Cormorant Garamond","Georgia",serif';
+    }
+    ctx.fillText(l,80,titleTop+i*lh);
+  });
+
+  // Subtitle below title
+  if(sub){
+    ctx.fillStyle=clr.mid;
+    ctx.font='300 italic 34px "Cormorant Garamond","Georgia",serif';
+    ctx.fillText(sub,80,titleTop+titleLines.length*lh+10);
+  }
+
+  // Footer
+  car2DrawLine(ctx,60,H-82,W-60,H-82,clr.line,0.8);
+  ctx.fillStyle=clr.mid;
+  ctx.font='500 17px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='2px';}catch(e){}
+  ctx.fillText('@NUTRIANDREARAGAO',60,H-48);
+  // "Deslize" right
+  ctx.fillStyle=accent;
+  ctx.font='600 17px Inter,Arial,sans-serif';
+  ctx.textAlign='right';
+  ctx.fillText('DESLIZE →',W-60,H-48);
+  ctx.textAlign='left';
+  try{ctx.letterSpacing='0px';}catch(e){}
+}
+
+// ── INTRO ────────────────────────────────────────────────────────────────────
+async function car2DIntro(ctx,slide,est,cor,bg,W,H,total){
+  const clr=PREMIUM_COLORS[est.nome.toLowerCase()]||PREMIUM_COLORS.revista;
+  ctx.fillStyle=bg||clr.bg;ctx.fillRect(0,0,W,H);
+
+  const txt=slide.texto||slide.titulo||'';
+
+  // Large decorative quote mark — top right, ghosted
+  ctx.save();
+  ctx.fillStyle=cor;ctx.globalAlpha=0.07;
+  ctx.font='italic 700 520px "Cormorant Garamond",serif';
+  ctx.textAlign='right';
+  ctx.fillText('"',W+40,560);
+  ctx.restore();ctx.textAlign='left';
+
+  // Slide number — ghost behind
+  ctx.save();
+  ctx.fillStyle=clr.ink;ctx.globalAlpha=0.04;
+  ctx.font='700 480px Inter,Arial,sans-serif';
+  ctx.fillText('02',-30,H*0.72);
+  ctx.restore();
+
+  // Thin top rule
+  car2DrawLine(ctx,60,90,W-60,90,clr.line,0.8);
+  ctx.fillStyle=clr.mid;
+  ctx.font='500 17px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='3px';}catch(e){}
+  ctx.fillText('ANDRÉ ARAGÃO',60,72);
+  try{ctx.letterSpacing='0px';}catch(e){}
+
+  // The quote text — centered vertically, large italic serif
+  let sz=txt.length>120?52:txt.length>80?64:txt.length>50?76:90;
+  ctx.font='italic 600 '+sz+'px "Cormorant Garamond","Georgia",serif';
+  const maxW=W-160;
+  let ls=car2Linhas(ctx,txt,maxW);
+  while(ls.length>7&&sz>42){sz-=6;ctx.font='italic 600 '+sz+'px "Cormorant Garamond","Georgia",serif';ls=car2Linhas(ctx,txt,maxW);}
+  const lh=sz*1.35;
+  const blockH=ls.length*lh;
+  const startY=(H-blockH)/2+sz*0.7;
+  ctx.fillStyle=clr.ink;
+  ls.forEach(function(l,i){ctx.fillText(l,80,startY+i*lh);});
+  // Accent underline on last line
+  const lastW=ctx.measureText(ls[ls.length-1]).width;
+  ctx.fillStyle=cor;
+  ctx.fillRect(80,startY+(ls.length-1)*lh+18,Math.min(lastW,280),4);
+
+  car2Footer(ctx,W,H,clr,cor,2,total);
+}
+
+// ── DICA ─────────────────────────────────────────────────────────────────────
+async function car2DDica(ctx,slide,est,cor,bg,img,W,H,total,idx){
+  const clr=PREMIUM_COLORS[est.nome.toLowerCase()]||PREMIUM_COLORS.revista;
+  const dn=slide.num-2; // dica number
+
+  if(img){
+    // Image top half, content bottom half
+    ctx.fillStyle=bg||clr.bg;ctx.fillRect(0,0,W,H);
+    const imgH=Math.round(H*0.48);
+    const ratio=Math.max(W/img.width,imgH/img.height);
+    const iw=img.width*ratio,ih=img.height*ratio;
+    ctx.save();ctx.beginPath();ctx.rect(0,0,W,imgH);ctx.clip();
+    ctx.drawImage(img,(W-iw)/2,(imgH-ih)/2,iw,ih);ctx.restore();
+    // Subtle shadow at bottom of image
+    const sg=ctx.createLinearGradient(0,imgH-60,0,imgH+20);
+    sg.addColorStop(0,'rgba(0,0,0,0)');sg.addColorStop(1,bg||(clr.bg));
+    ctx.fillStyle=sg;ctx.fillRect(0,imgH-60,W,80);
+    // Content below image
+    _car2DicaContent(ctx,slide,W,H,imgH+40,clr,cor,total,dn);
+  } else if(idx%2===0){
+    // Layout A: Large number background, asymmetric
+    ctx.fillStyle=bg||clr.bg;ctx.fillRect(0,0,W,H);
+    // Ghost number behind — reduced, positioned top-right
+    ctx.save();
+    ctx.fillStyle=cor;ctx.globalAlpha=0.05;
+    ctx.font='700 420px Inter,Arial,sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText(String(dn).padStart(2,'0'),W+30,H*0.52);
+    ctx.textAlign='left';
+    ctx.restore();
+    // Accent bar left
+    ctx.fillStyle=cor;ctx.fillRect(0,0,3,H);
+    // Content starts higher up
+    _car2DicaContent(ctx,slide,W,H,Math.round(H*0.15),clr,cor,total,dn);
+  } else {
+    // Layout B: Solid accent header block
+    ctx.fillStyle=bg||clr.bg;ctx.fillRect(0,0,W,H);
+    // Top solid block
+    const blockH=Math.round(H*0.32);
+    ctx.fillStyle=cor;ctx.fillRect(0,0,W,blockH);
+    // Number in block
+    const blockClr=est.nome==='Cartaz'?clr.bg:'#0D0B08';
+    ctx.fillStyle=est.nome==='Noturno'?'rgba(26,22,18,0.4)':(est.nome==='Cartaz'?'rgba(245,240,232,0.15)':'rgba(245,240,232,0.18)');
+    ctx.font='700 200px Inter,Arial,sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText(String(dn).padStart(2,'0'),W-50,blockH-30);
+    ctx.textAlign='left';
+    // Content below block
+    _car2DicaContent(ctx,slide,W,H,blockH+60,clr,cor,total,dn);
+  }
+}
+
+function _car2DicaContent(ctx,slide,W,H,startY,clr,cor,total,dn){
+  const titulo=(slide.titulo||'').toUpperCase();
+  const texto=slide.texto||'';
+  const maxW=W-120;
+
+  // Dica number label (small)
+  ctx.fillStyle=cor;
+  ctx.font='600 20px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='2px';}catch(e){}
+  ctx.fillText('0'+dn+'.',60,startY);
+  try{ctx.letterSpacing='0px';}catch(e){}
+
+  // Title
+  let tsz=titulo.length>28?80:titulo.length>18?96:titulo.length>12?112:128;
+  ctx.font='700 '+tsz+'px "Cormorant Garamond","Georgia",serif';
+  let tls=car2Linhas(ctx,titulo,maxW);
+  while(tls.length>3&&tsz>56){tsz-=8;ctx.font='700 '+tsz+'px "Cormorant Garamond","Georgia",serif';tls=car2Linhas(ctx,titulo,maxW);}
+  ctx.fillStyle=clr.ink;
+  tls.forEach(function(l,i){ctx.fillText(l,60,startY+42+i*tsz*1.08);});
+
+  // Separator dot
+  const afterTitle=startY+42+tls.length*tsz*1.08+24;
+  ctx.fillStyle=cor;
+  ctx.beginPath();ctx.arc(60,afterTitle,4,0,Math.PI*2);ctx.fill();
+  car2DrawLine(ctx,76,afterTitle,220,afterTitle,cor,1.5);
+
+  // Body text
+  if(texto){
+    let bsz=texto.length>120?34:texto.length>80?38:42;
+    ctx.font='300 '+bsz+'px "Cormorant Garamond","Georgia",serif';
+    const bls=car2Linhas(ctx,texto,maxW);
+    ctx.fillStyle=clr.mid;
+    bls.slice(0,5).forEach(function(l,i){ctx.fillText(l,60,afterTitle+36+i*bsz*1.45);});
+  }
+
+  car2Footer(ctx,W,H,clr,cor,slide.num,total);
+}
+
+// ── CTA ──────────────────────────────────────────────────────────────────────
+async function car2DCta(ctx,slide,est,cor,bg,W,H,total){
+  const clr=PREMIUM_COLORS[est.nome.toLowerCase()]||PREMIUM_COLORS.revista;
+  // CTA: dark background always for maximum contrast
+  const ctaBg=est.nome==='Cartaz'?cor:'#0D0B08';
+  const ctaInk='#F5F0E8';
+  const ctaMid='rgba(245,240,232,0.5)';
+  ctx.fillStyle=ctaBg;ctx.fillRect(0,0,W,H);
+
+  // Subtle texture: very fine vertical lines
+  ctx.save();
+  ctx.strokeStyle='rgba(245,240,232,0.025)';ctx.lineWidth=1;
+  for(let x=60;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  ctx.restore();
+
+  // Top label
+  car2DrawLine(ctx,60,90,W-60,90,'rgba(245,240,232,0.12)',0.8);
+  ctx.fillStyle='rgba(245,240,232,0.4)';
+  ctx.font='500 17px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='3px';}catch(e){}
+  ctx.fillText('ANDRÉ ARAGÃO · CRN 11-16678',60,72);
+  try{ctx.letterSpacing='0px';}catch(e){}
+
+  // Main message — large, centered vertically
+  const titulo=(slide.titulo||slide.texto||'SALVA ESSE POST').toUpperCase();
+  let sz=titulo.length>60?76:titulo.length>40?92:titulo.length>25?110:130;
+  ctx.font='italic 700 '+sz+'px "Cormorant Garamond","Georgia",serif';
+  const maxW=W-120;
+  let ls=car2Linhas(ctx,titulo,maxW);
+  while(ls.length>5&&sz>60){sz-=8;ctx.font='italic 700 '+sz+'px "Cormorant Garamond","Georgia",serif';ls=car2Linhas(ctx,titulo,maxW);}
+  const lh=sz*1.1;
+  const blockH=ls.length*lh;
+  const centerY=(H-blockH)/2+sz*0.72;
+  ctx.fillStyle=ctaInk;
+  ls.forEach(function(l,i){ctx.fillText(l,60,centerY+i*lh);});
+  // Gold accent underline on last line
+  const lw=ctx.measureText(ls[ls.length-1]).width;
+  ctx.fillStyle=cor;
+  ctx.fillRect(60,centerY+(ls.length-1)*lh+20,Math.min(lw,W-120),5);
+
+  // CTA row
+  const ctaY=H-140;
+  ctx.fillStyle=cor;
+  ctx.font='700 20px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='3px';}catch(e){}
+  ctx.fillText('SALVA',60,ctaY);
+  const sw1=ctx.measureText('SALVA').width;
+  ctx.fillStyle='rgba(245,240,232,0.25)';ctx.fillText('  ·  COMPARTILHA  ·  SEGUE',60+sw1,ctaY);
+  try{ctx.letterSpacing='0px';}catch(e){}
+
+  // Footer
+  car2DrawLine(ctx,60,H-80,'rgba(245,240,232,0.12)'.replace('0.12','0.1'),H-80,'rgba(245,240,232,0.1)',0.8);
+  // Fix the line call
+  ctx.save();
+  ctx.strokeStyle='rgba(245,240,232,0.1)';ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.moveTo(60,H-80);ctx.lineTo(W-60,H-80);ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle='rgba(245,240,232,0.4)';
+  ctx.font='500 17px Inter,Arial,sans-serif';
+  try{ctx.letterSpacing='2px';}catch(e){}
+  ctx.fillText('@NUTRIANDREARAGAO',60,H-46);
+  ctx.textAlign='right';
+  ctx.fillStyle=cor;
+  ctx.font='600 17px Inter,Arial,sans-serif';
+  ctx.fillText('NUTRIANDREARAGAO.COM.BR',W-60,H-46);
+  ctx.textAlign='left';
+  try{ctx.letterSpacing='0px';}catch(e){}
 }
 
 function car2BaixarSlide(canvas,num){
