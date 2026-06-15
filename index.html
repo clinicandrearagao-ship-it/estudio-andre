@@ -424,7 +424,7 @@ function renderGaleriaImg() {
 
 // ══ REELS ════════════════════════════════════════════════════════════════════
 
-async function gerarRoteiro() {
+async async function gerarRoteiro() {
   const obj = document.getElementById('reels-obj')?.value || 'seguidores';
   const temaEl = document.getElementById('reels-tema');
   const tema = temaEl?.options[temaEl.selectedIndex]?.text || temaEl?.value || '';
@@ -432,7 +432,7 @@ async function gerarRoteiro() {
   load('btn-reels', true);
   out.innerHTML = '<div class="empty"><div class="spinner" style="width:20px;height:20px;border-width:2.5px;border-top-color:var(--gold);margin:0 auto 12px"></div><p>Escrevendo roteiro…</p></div>';
   try {
-    const txt = await api(`Escreva roteiro de Reels de 30-45 segundos.
+    const roteiro = await apiFable(`Escreva roteiro de Reels de 30-45 segundos.
 Tema: ${tema}
 Objetivo: ${obj}
 Gancho nos primeiros 3 segundos (fala impactante, sem "Olá" ou "Oi pessoal").
@@ -444,14 +444,41 @@ Formato:
 ---
 LEGENDA: [legenda completa para o post]
 HASHTAGS: [5-8 hashtags]`, 1500);
-    out.innerHTML = `<div class="resultado-wrap">
-      <div class="resultado-head"><span class="resultado-label">ROTEIRO · REELS</span>
-        <button class="btn btn-ghost" style="font-size:11px;padding:6px 14px" onclick="navigator.clipboard.writeText(document.querySelector('#reels-out .resultado-body').textContent)">Copiar</button>
+
+    // Gerar prompt otimizado para Higgsfield (em paralelo após o roteiro)
+    const higgsPrompt = await apiFable(`Você é um diretor de vídeo criativo.
+Com base neste tema de Reels: "${tema}"
+Crie um prompt em inglês para gerar um clipe de vídeo de 6-9 segundos no Higgsfield AI.
+O vídeo deve capturar visualmente o gancho ou essência da mensagem de forma cinematográfica.
+Regras:
+- Em inglês
+- Formato vertical 9:16, para Reels do Instagram
+- Descreva: sujeito/cena, iluminação, movimento de câmera, estética visual
+- Sem texto na tela
+- Estilo: dinâmico, moderno, para conteúdo de saúde/nutrição
+- Máximo 3 frases curtas e descritivas
+Retorne APENAS o prompt, sem títulos, sem explicação, sem aspas.`, 250);
+
+    out.innerHTML = \`<div class="resultado-wrap">
+      <div class="resultado-head">
+        <span class="resultado-label">ROTEIRO · REELS</span>
+        <button class="btn btn-ghost" style="font-size:11px;padding:6px 14px" onclick="navigator.clipboard.writeText(document.querySelector('#reels-out .resultado-body').textContent)">Copiar roteiro</button>
       </div>
-      <div class="resultado-body">${txt}</div>
-    </div>`;
+      <div class="resultado-body" style="white-space:pre-wrap">\${roteiro}</div>
+      <div style="margin-top:20px;padding:16px 18px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.22);border-radius:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gold);text-transform:uppercase">🎬 Prompt para Higgsfield</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="navigator.clipboard.writeText(document.getElementById('higgs-prompt-txt').textContent).then(()=>this.textContent='Copiado ✓')">Copiar</button>
+            <button class="btn btn-primary" style="font-size:11px;padding:5px 12px;background:linear-gradient(135deg,#7c3aed,#a855f7)" onclick="navigator.clipboard.writeText(document.getElementById('higgs-prompt-txt').textContent);window.open('https://higgsfield.ai/ai/video','_blank')">Criar vídeo ↗</button>
+          </div>
+        </div>
+        <p id="higgs-prompt-txt" style="font-size:13px;line-height:1.6;color:var(--text-muted);font-style:italic;margin:0">\${higgsPrompt}</p>
+        <p style="font-size:11px;color:#666;margin:10px 0 0">Cole o prompt no Higgsfield → escolha Seedance 2.0 ou Kling 3.0 → gere seu Reels em vídeo.</p>
+      </div>
+    </div>\`;
   } catch (e) {
-    out.innerHTML = `<div class="erro-msg">Erro: ${e.message}</div>`;
+    out.innerHTML = \`<div class="erro-msg">Erro: \${e.message}</div>\`;
   } finally {
     load('btn-reels', false);
   }
