@@ -826,7 +826,7 @@ async function gerarRoteiro() {
   load('btn-reels', true);
   out.innerHTML = '<div class="empty"><div class="spinner" style="width:20px;height:20px;border-width:2.5px;border-top-color:var(--gold);margin:0 auto 12px"></div><p>Escrevendo roteiro…</p></div>';
   try {
-    const roteiro = await apiFable(`Escreva roteiro de Reels de 30-45 segundos.
+    const roteiro = await api(`Escreva roteiro de Reels de 30-45 segundos.
 Tema: ${tema}
 Objetivo: ${obj}
 Gancho nos primeiros 3 segundos (fala impactante, sem "Olá" ou "Oi pessoal").
@@ -840,7 +840,7 @@ LEGENDA: [legenda completa para o post]
 HASHTAGS: [5-8 hashtags]`, 1500);
 
     // Gerar prompt otimizado para Higgsfield (em paralelo após o roteiro)
-    const higgsPrompt = await apiFable(`Você é um diretor de vídeo criativo.
+    const higgsPrompt = await api(`Você é um diretor de vídeo criativo.
 Com base neste tema de Reels: "${tema}"
 Crie um prompt em inglês para gerar um clipe de vídeo de 6-9 segundos no Higgsfield AI.
 O vídeo deve capturar visualmente o gancho ou essência da mensagem de forma cinematográfica.
@@ -2257,7 +2257,7 @@ Faça uma análise estratégica COMPLETA e ESPECÍFICA. Estruture exatamente ass
 Seja cirúrgico, direto e acionável. Sem enrolação.`;
 
   try {
-    const analise = await apiFable(prompt, 2000);
+    const analise = await api(prompt, 2000);
 
     // Parse sections for rich display
     const sections = {
@@ -2424,7 +2424,7 @@ async function semGerar(key, tipo, tema, obj) {
       prompt = 'Escreva legenda para post de foto no Instagram.\nContexto: ' + tema + '\nEstrutura: abertura que para o scroll (1 linha) + desenvolvimento pessoal (3-4 linhas) + CTA final\nTom: direto, pessoal, sem motivacional vazio\nAo final: HASHTAGS: [5-8 hashtags]\nMaximo 150 palavras.';
     }
 
-    var txt = await apiFable(prompt, 1200);
+    var txt = await api(prompt, 1200);
 
     outDiv.innerHTML = '<div class="sem-output-head">'
       + '<span class="sem-output-label">' + label + '</span>'
