@@ -2188,13 +2188,6 @@ Seja direto e acionável. Sem rodeios.`, 1500, CONSULTOR_SYS);
 
 // ══ INIT ═════════════════════════════════════════════════════════════════════
 
-document.addEventListener('DOMContentLoaded', function() {
-  renderGrid30();
-  motorInit();
-  conInit();
-  car2Init();
-  dashInit();
-
 // ══ ANÁLISE DE PERFIL ════════════════════════════════════════════════════
 
 async function analisarPerfil() {
@@ -2471,7 +2464,13 @@ async function semGerar(key, tipo, tema, obj) {
   }
 }
 
-
+document.addEventListener('DOMContentLoaded', function() {
+  renderGrid30();
+  motorInit();
+  conInit();
+  car2Init();
+  dashInit();
+  semRestaurarStatus();
 });
 </script>
 </body>
