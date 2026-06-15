@@ -2406,36 +2406,68 @@ async function semGerar(key, tipo, tema, obj) {
   var card = document.querySelector('[data-key="' + key + '"]');
   var btn = card ? card.querySelector('.sem-gerar-btn') : null;
 
-  if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:2px;border-top-color:var(--cream);display:inline-block"></div> Gerando...'; }
-  if (outDiv) { outDiv.classList.add('visible'); outDiv.innerHTML = '<div style="padding:12px;color:var(--cream-dim);font-size:13px">Gerando conteúdo…</div>'; }
+  if (!outDiv) { console.error('outDiv not found: out-' + key); return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Gerando...'; }
+  outDiv.style.display = 'block';
+  outDiv.innerHTML = '<div style="padding:14px;color:var(--cream-dim);font-size:13px">Gerando conteudo...</div>';
 
   try {
-    var prompt = '';
-    var label = '';
+    var prompt;
+    var label;
 
     if (tipo === 'reels') {
       label = 'ROTEIRO · REELS';
-      prompt = 'Escreva roteiro de Reels de 30-45 segundos.\nTema: ' + tema + '\nObjetivo: ' + obj + '\nGancho nos primeiros 3 segundos (fala impactante, sem Ola ou Oi pessoal).\nFormato:\n[0-3s] GANCHO: [fala]\n[3-15s] [cena/fala]\n[15-30s] [cena/fala]\n[30-45s] CTA: [fala]\n---\nLEGENDA: [legenda completa]\nHASHTAGS: [5-8 hashtags]';
+      prompt = 'Escreva roteiro de Reels de 30-45 segundos.'
+        + '\nTema: ' + tema
+        + '\nObjetivo: ' + obj
+        + '\nGancho nos primeiros 3 segundos (fala impactante, sem Ola ou Oi pessoal).'
+        + '\nFormato:'
+        + '\n[0-3s] GANCHO: [fala]'
+        + '\n[3-15s] [cena/fala]'
+        + '\n[15-30s] [cena/fala]'
+        + '\n[30-45s] CTA: [fala]'
+        + '\n---'
+        + '\nLEGENDA: [legenda completa]'
+        + '\nHASHTAGS: [5-8 hashtags]';
     } else if (tipo === 'carrossel') {
       label = 'COPY · CARROSSEL';
-      prompt = 'Crie copy para carrossel de Instagram com 7 slides.\nTema: ' + tema + '\nSlide 1 (CAPA): titulo impactante, curto\nSlide 2-6: um ponto por slide, texto direto (max 3 linhas cada)\nSlide 7 (CTA): frase de fechamento + chamada para acao\nFormato: SLIDE X: [texto]\nAo final: LEGENDA: [legenda completa] e HASHTAGS: [5-8]';
+      prompt = 'Crie copy para carrossel de Instagram com 7 slides.'
+        + '\nTema: ' + tema
+        + '\nSlide 1 (CAPA): titulo impactante, curto'
+        + '\nSlide 2-6: um ponto por slide, texto direto (max 3 linhas cada)'
+        + '\nSlide 7 (CTA): frase de fechamento + chamada para acao'
+        + '\nFormato: SLIDE X: [texto]'
+        + '\nAo final: LEGENDA: [legenda completa] e HASHTAGS: [5-8]';
     } else {
       label = 'LEGENDA · FOTO';
-      prompt = 'Escreva legenda para post de foto no Instagram.\nContexto: ' + tema + '\nEstrutura: abertura que para o scroll (1 linha) + desenvolvimento pessoal (3-4 linhas) + CTA final\nTom: direto, pessoal, sem motivacional vazio\nAo final: HASHTAGS: [5-8 hashtags]\nMaximo 150 palavras.';
+      prompt = 'Escreva legenda para post de foto no Instagram.'
+        + '\nContexto: ' + tema
+        + '\nEstrutura: abertura que para o scroll (1 linha) + desenvolvimento pessoal (3-4 linhas) + CTA final'
+        + '\nTom: direto, pessoal, sem motivacional vazio'
+        + '\nAo final: HASHTAGS: [5-8 hashtags]'
+        + '\nMaximo 150 palavras.';
     }
 
     var txt = await api(prompt, 1200);
 
-    outDiv.innerHTML = '<div class="sem-output-head">'
-      + '<span class="sem-output-label">' + label + '</span>'
-      + '<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="navigator.clipboard.writeText(document.getElementById(\'txt-' + key + '\').textContent)">Copiar</button>'
+    if (!txt) throw new Error('Servidor retornou resposta vazia');
+
+    var escaped = txt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    outDiv.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">'
+      + '<span style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)">' + label + '</span>'
+      + '<button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="var t=document.getElementById(\'txt-' + key + '\');t.select();document.execCommand(\'copy\');this.textContent=\'Copiado!\'">Copiar</button>'
       + '</div>'
-      + '<pre id="txt-' + key + '" class="sem-output-inner">' + txt + '</pre>';
+      + '<textarea id="txt-' + key + '" rows="12" style="width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--cream-mid);line-height:1.7;resize:vertical;font-family:inherit">' + escaped + '</textarea>';
 
   } catch(e) {
-    outDiv.innerHTML = '<div class="erro-msg">Erro: ' + e.message + '</div>';
+    outDiv.innerHTML = '<div style="padding:12px;background:rgba(220,80,80,0.1);border:1px solid rgba(220,80,80,0.25);border-radius:8px;color:#e07070;font-size:13px">Erro: ' + (e.message || 'falha desconhecida') + '</div>';
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Regenerar'; }
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Regenerar';
+    }
   }
 }
 
